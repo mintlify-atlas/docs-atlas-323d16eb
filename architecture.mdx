@@ -9,7 +9,7 @@ The FE Monorepo is a Bun workspace that houses three production applications and
 
 The repository is organized into two main directories:
 
-```
+```text
 fe-monorepo/
 ├── apps/              # Production applications
 │   ├── spa/          # React 19 SPA with TanStack Router
@@ -230,7 +230,7 @@ Packages provide reusable code that all apps can consume.
 The core package contains shared business logic, types, hooks, and utilities that work across both browser and mobile environments.
 
 <Accordion title="Package structure">
-  ```
+  ```text
   packages/core/
   ├── src/
   │   ├── apis/        # API schemas and types
@@ -366,7 +366,7 @@ Each app follows a consistent directory structure:
 
 <Tabs>
   <Tab title="SPA Structure">
-    ```
+    ```text
     apps/spa/
     ├── public/              # Static assets
     ├── src/
@@ -385,7 +385,7 @@ Each app follows a consistent directory structure:
   </Tab>
   
   <Tab title="Web Structure">
-    ```
+    ```text
     apps/web/
     ├── public/              # Static assets
     ├── src/
@@ -405,7 +405,7 @@ Each app follows a consistent directory structure:
   </Tab>
   
   <Tab title="Expo Structure">
-    ```
+    ```text
     apps/expo/
     ├── assets/              # Images, fonts
     ├── src/
