@@ -1,0 +1,544 @@
+---
+title: Performance Optimization
+description: Web vitals monitoring, bundle analysis, and optimization techniques
+---
+
+Performance is critical for user experience and SEO. This guide covers the performance optimization strategies and tools used in the monorepo.
+
+## Core Web Vitals
+
+Both applications automatically track Core Web Vitals metrics:
+
+- **LCP** (Largest Contentful Paint) - Loading performance
+- **INP** (Interaction to Next Paint) - Interactivity
+- **CLS** (Cumulative Layout Shift) - Visual stability
+- **FCP** (First Contentful Paint) - Initial rendering
+- **TTFB** (Time to First Byte) - Server response time
+
+### Next.js Web Vitals (@workspace/web)
+
+The Next.js app uses the `useReportWebVitals` hook:
+
+```tsx
+// apps/web/src/core/providers/web-vitals.client.tsx
+'use client'
+
+import { logger } from '@workspace/core/utils/logger'
+import { useReportWebVitals } from 'next/web-vitals'
+
+export function WebVitals() {
+  useReportWebVitals((metric) => {
+    // Log metrics for monitoring
+    logger.log(`[web-vitals]: ${metric.name}`, metric)
+    
+    // Send to analytics if rating is not "good"
+    if (metric.rating !== 'good') {
+      sendToAnalytics(metric)
+    }
+  })
+
+  return null
+}
+```
+
+Include the component in your root layout:
+
+```tsx
+import { WebVitals } from '@/core/providers/web-vitals.client'
+
+export function Providers({ children }) {
+  return (
+    <>
+      <WebVitals />
+      {children}
+    </>
+  )
+}
+```
+
+### React SPA Web Vitals (@workspace/spa)
+
+The SPA uses the `web-vitals` library with OpenTelemetry integration:
+
+```typescript
+// apps/spa/src/core/utils/web-vitals.ts
+import { metrics } from '@opentelemetry/api'
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
+
+const meter = metrics.getMeter('web-vitals')
+
+const lcpMetric = meter.createHistogram('web_vitals_lcp', {
+  description: 'Largest Contentful Paint',
+  unit: 'ms',
+})
+
+const inpMetric = meter.createHistogram('web_vitals_inp', {
+  description: 'Interaction to Next Paint',
+  unit: 'ms',
+})
+
+// Record metrics
+export function reportWebVitals() {
+  onLCP((metric) => {
+    lcpMetric.record(metric.value, {
+      delta: metric.delta,
+      navigationType: metric.navigationType,
+      rating: metric.rating,
+    })
+  })
+  
+  onINP((metric) => {
+    inpMetric.record(metric.value, {
+      delta: metric.delta,
+      navigationType: metric.navigationType,
+      rating: metric.rating,
+    })
+  })
+  
+  // ... CLS, FCP, TTFB
+}
+```
+
+Call `reportWebVitals()` on key pages:
+
+```tsx
+import { reportWebVitals } from '@/core/utils/web-vitals'
+
+function HomePage() {
+  useEffect(() => {
+    reportWebVitals()
+  }, [])
+  
+  return <div>Home Content</div>
+}
+```
+
+<Tip>
+  Web Vitals metrics are sent to Grafana via OpenTelemetry. View them in your Prometheus data source.
+</Tip>
+
+## Bundle Analysis
+
+### Next.js Bundle Analysis
+
+Analyze your Next.js bundle to identify optimization opportunities:
+
+```bash
+cd apps/web
+NEXT_ANALYZE=true bun run build
+```
+
+This generates an interactive bundle analyzer report showing:
+- Module sizes
+- Tree-shaking effectiveness
+- Code splitting efficiency
+- Duplicate dependencies
+
+### React SPA Bundle Analysis
+
+The SPA uses `rollup-plugin-visualizer` for bundle analysis:
+
+```typescript
+// apps/spa/vite.config.ts
+import { visualizer } from 'rollup-plugin-visualizer'
+
+export default defineConfig({
+  plugins: [
+    visualizer({
+      filename: 'html/visualizer-stats.html',
+    }),
+  ],
+})
+```
+
+After building, open `html/visualizer-stats.html` to explore:
+- Chunk sizes
+- Module dependencies
+- Tree map visualization
+- Redundant code
+
+```bash
+cd apps/spa
+bun run build
+open html/visualizer-stats.html
+```
+
+## Optimization Techniques
+
+### Code Splitting
+
+<Tabs>
+  <Tab title="Next.js">
+    Use dynamic imports with `next/dynamic`:
+    
+    ```tsx
+    import dynamic from 'next/dynamic'
+    
+    const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+      loading: () => <Skeleton />,
+      ssr: false, // Disable SSR if not needed
+    })
+    
+    function Page() {
+      return <HeavyComponent />
+    }
+    ```
+  </Tab>
+  
+  <Tab title="React SPA">
+    Use React's lazy and Suspense:
+    
+    ```tsx
+    import { lazy, Suspense } from 'react'
+    
+    const HeavyComponent = lazy(() => import('./HeavyComponent'))
+    
+    function Page() {
+      return (
+        <Suspense fallback={<Skeleton />}>
+          <HeavyComponent />
+        </Suspense>
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Image Optimization
+
+<Tabs>
+  <Tab title="Next.js">
+    Use the optimized Image component:
+    
+    ```tsx
+    import Image from 'next/image'
+    
+    function Gallery() {
+      return (
+        <Image
+          src="/hero.jpg"
+          alt="Hero image"
+          width={1200}
+          height={630}
+          priority // For above-the-fold images
+          placeholder="blur"
+          blurDataURL="data:image/..."
+        />
+      )
+    }
+    ```
+    
+    Next.js automatically:
+    - Serves WebP/AVIF formats
+    - Resizes images on-demand
+    - Lazy loads by default
+    - Prevents CLS with explicit dimensions
+  </Tab>
+  
+  <Tab title="React SPA">
+    Optimize images manually:
+    
+    ```tsx
+    function Gallery() {
+      return (
+        <img
+          src="/hero.webp"
+          alt="Hero image"
+          width={1200}
+          height={630}
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
+    ```
+    
+    Use responsive images:
+    
+    ```tsx
+    <picture>
+      <source srcSet="/hero.avif" type="image/avif" />
+      <source srcSet="/hero.webp" type="image/webp" />
+      <img src="/hero.jpg" alt="Hero" />
+    </picture>
+    ```
+  </Tab>
+</Tabs>
+
+### Font Optimization
+
+<Tabs>
+  <Tab title="Next.js">
+    Use `next/font` for automatic font optimization:
+    
+    ```typescript
+    import { Inter } from 'next/font/google'
+    
+    const inter = Inter({
+      subsets: ['latin'],
+      display: 'swap',
+      variable: '--font-inter',
+    })
+    
+    export default function RootLayout({ children }) {
+      return (
+        <html className={inter.variable}>
+          <body>{children}</body>
+        </html>
+      )
+    }
+    ```
+    
+    Benefits:
+    - Zero layout shift
+    - Self-hosted fonts
+    - Automatic subsetting
+    - Preloading
+  </Tab>
+  
+  <Tab title="React SPA">
+    Preload critical fonts:
+    
+    ```html
+    <!-- index.html -->
+    <link
+      rel="preload"
+      href="/fonts/inter.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    ```
+    
+    Use `font-display: swap`:
+    
+    ```css
+    @font-face {
+      font-family: 'Inter';
+      src: url('/fonts/inter.woff2') format('woff2');
+      font-display: swap;
+      font-weight: 400;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### React Compiler
+
+Both applications use the React Compiler for automatic memoization:
+
+```javascript
+// next.config.ts (web)
+const config = {
+  reactCompiler: true,
+}
+
+// vite.config.ts (spa)
+react({
+  babel: {
+    plugins: ['babel-plugin-react-compiler'],
+  },
+})
+```
+
+The compiler automatically:
+- Memoizes components
+- Optimizes re-renders
+- Reduces manual `useMemo`/`useCallback` usage
+- Improves overall performance
+
+### Package Optimization
+
+Optimize dependencies to reduce bundle size:
+
+```typescript
+// next.config.ts
+const config = {
+  experimental: {
+    optimizePackageImports: ['@workspace/core'],
+  },
+}
+```
+
+<AccordionGroup>
+  <Accordion title="Tree-shaking">
+    Ensure your imports support tree-shaking:
+    
+    ```typescript
+    // ✅ Good - tree-shakeable
+    import { Button } from '@workspace/core'
+    
+    // ❌ Bad - imports entire package
+    import * as Core from '@workspace/core'
+    ```
+  </Accordion>
+  
+  <Accordion title="Dynamic imports for heavy dependencies">
+    Load heavy libraries only when needed:
+    
+    ```typescript
+    async function processCSV(file: File) {
+      const Papa = await import('papaparse')
+      return Papa.parse(file)
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Analyze dependencies">
+    Check for duplicate or outdated packages:
+    
+    ```bash
+    bun run bundle-analyzer
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Caching Strategies
+
+### Next.js
+
+Leverage Next.js caching mechanisms:
+
+```typescript
+// Static generation with revalidation
+export const revalidate = 3600 // Revalidate every hour
+
+// Route segment config
+export const dynamic = 'force-static'
+export const fetchCache = 'force-cache'
+
+// Fetch with caching
+fetch('https://api.example.com/data', {
+  next: { revalidate: 3600 },
+})
+```
+
+### Service Workers (SPA)
+
+The SPA uses Vite PWA for offline caching:
+
+```typescript
+// vite.config.ts
+VitePWA({
+  strategies: 'generateSW',
+  registerType: 'prompt',
+  workbox: {
+    globPatterns: ['**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2}'],
+    cleanupOutdatedCaches: true,
+    clientsClaim: true,
+  },
+})
+```
+
+## Performance Monitoring Tools
+
+<CardGroup cols={2}>
+  <Card title="Capo.js" icon="bolt" href="https://rviscomi.github.io/capo.js/">
+    Optimize HTML `<head>` element ordering for better performance
+  </Card>
+  <Card title="Unlighthouse" icon="lighthouse" href="https://unlighthouse.dev/">
+    Scan and measure performance across all pages
+  </Card>
+  <Card title="Web Vitals" icon="chart-line" href="https://web.dev/explore/learn-core-web-vitals">
+    Learn about Core Web Vitals and optimization
+  </Card>
+  <Card title="Web.dev Performance" icon="gauge" href="https://web.dev/learn/performance/welcome">
+    Comprehensive performance learning guide
+  </Card>
+</CardGroup>
+
+## Performance Checklist
+
+<Steps>
+  <Step title="Measure baseline">
+    - Run Lighthouse audits
+    - Check Web Vitals scores
+    - Analyze bundle sizes
+    - Review network waterfalls
+  </Step>
+  
+  <Step title="Optimize critical path">
+    - Minimize blocking resources
+    - Inline critical CSS
+    - Preload key resources
+    - Use font-display: swap
+  </Step>
+  
+  <Step title="Reduce bundle size">
+    - Analyze and remove unused code
+    - Code-split large dependencies
+    - Use dynamic imports
+    - Enable compression (gzip/brotli)
+  </Step>
+  
+  <Step title="Optimize images">
+    - Use modern formats (WebP/AVIF)
+    - Implement lazy loading
+    - Add explicit dimensions
+    - Use responsive images
+  </Step>
+  
+  <Step title="Monitor continuously">
+    - Set up Web Vitals tracking
+    - Monitor with Grafana
+    - Run automated Lighthouse CI
+    - Track bundle size in CI/CD
+  </Step>
+</Steps>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Prioritize above-the-fold content">
+    Load critical content first:
+    - Use `priority` prop on hero images
+    - Inline critical CSS
+    - Defer non-critical JavaScript
+    - Preload fonts and key assets
+  </Accordion>
+  
+  <Accordion title="Implement progressive enhancement">
+    Build a solid foundation:
+    - Start with HTML
+    - Layer on CSS
+    - Enhance with JavaScript
+    - Ensure core functionality without JS
+  </Accordion>
+  
+  <Accordion title="Use proper caching headers">
+    Configure aggressive caching for static assets:
+    ```
+    Cache-Control: public, max-age=31536000, immutable
+    ```
+    
+    And short-lived caching for dynamic content:
+    ```
+    Cache-Control: public, max-age=0, must-revalidate
+    ```
+  </Accordion>
+  
+  <Accordion title="Monitor real user metrics">
+    Track actual user experience:
+    - Set up RUM (Real User Monitoring)
+    - Analyze field data, not just lab data
+    - Segment by device, network, geography
+    - Act on performance budgets
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Next.js Performance" icon="next" href="https://nextjs.org/docs/app/building-your-application/optimizing">
+    Official Next.js optimization guide
+  </Card>
+  <Card title="Vite Performance" icon="bolt" href="https://vitejs.dev/guide/performance.html">
+    Vite performance best practices
+  </Card>
+  <Card title="web.dev" icon="google" href="https://web.dev/">
+    Google's web development best practices
+  </Card>
+  <Card title="Grafana Observability" icon="chart-line" href="/advanced/observability">
+    Monitor performance with Grafana
+  </Card>
+</CardGroup>

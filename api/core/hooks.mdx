@@ -1,0 +1,576 @@
+---
+title: Custom Hooks
+description: Collection of custom React hooks for state management, side effects, and browser APIs
+---
+
+# Custom Hooks
+
+The core package provides a comprehensive collection of custom React hooks for common use cases.
+
+## Storage Hooks
+
+### useLocalStorageState
+
+Persist state in `localStorage` with automatic serialization and deserialization.
+
+**Location**: `@workspace/core/hooks/use-local-storage-state`
+
+```typescript
+import { useLocalStorageState } from '@workspace/core/hooks/use-local-storage-state'
+
+function UserPreferences() {
+  const [theme, setTheme] = useLocalStorageState('theme', {
+    defaultValue: 'light',
+  })
+
+  return (
+    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      Current: {theme}
+    </button>
+  )
+}
+```
+
+<ParamField path="key" type="string" required>
+  localStorage key to store the value
+</ParamField>
+
+<ParamField path="options.defaultValue" type="T">
+  Default value if no stored value exists
+</ParamField>
+
+<ParamField path="options.serializer" type="(value: T) => string">
+  Custom serialization function (defaults to JSON.stringify)
+</ParamField>
+
+<ParamField path="options.deserializer" type="(value: string) => T">
+  Custom deserialization function (defaults to JSON.parse)
+</ParamField>
+
+**Returns**: `[T, (value: T) => void]` - State value and setter function
+
+### useSessionStorageState
+
+Persist state in `sessionStorage` with automatic serialization.
+
+**Location**: `@workspace/core/hooks/use-session-storage-state`
+
+```typescript
+import { useSessionStorageState } from '@workspace/core/hooks/use-session-storage-state'
+
+function FormState() {
+  const [formData, setFormData] = useSessionStorageState('form', {
+    defaultValue: { name: '', email: '' },
+  })
+
+  return (
+    <input
+      value={formData.name}
+      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+    />
+  )
+}
+```
+
+**Parameters**: Same as `useLocalStorageState`
+
+**Returns**: `[T, (value: T) => void]` - State value and setter function
+
+---
+
+## Media & Browser Hooks
+
+### useMediaQuery
+
+React to CSS media query changes with automatic updates on resize.
+
+**Location**: `@workspace/core/hooks/use-media-query`
+
+```typescript
+import { useMediaQuery } from '@workspace/core/hooks/use-media-query'
+
+function ResponsiveComponent() {
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isDark = useMediaQuery('(prefers-color-scheme: dark)')
+  const isPrint = useMediaQuery('print')
+
+  return <div>{isMobile ? 'Mobile' : 'Desktop'}</div>
+}
+```
+
+<ParamField path="query" type="string" required>
+  CSS media query string to match against
+</ParamField>
+
+**Returns**: `boolean` - Whether the media query matches
+
+### useCopyToClipboard
+
+Copy text to clipboard with status feedback.
+
+**Location**: `@workspace/core/hooks/use-copy-to-clipboard`
+
+```typescript
+import { useCopyToClipboard } from '@workspace/core/hooks/use-copy-to-clipboard'
+
+function CopyButton({ text }: { text: string }) {
+  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
+
+  return (
+    <button onClick={() => copyToClipboard(text)}>
+      {isCopied ? 'Copied!' : 'Copy'}
+    </button>
+  )
+}
+```
+
+<ParamField path="options.timeout" type="number" default="1000">
+  Duration in ms before `isCopied` resets to false
+</ParamField>
+
+**Returns**:
+- `isCopied`: `boolean` - Whether text was recently copied
+- `copyToClipboard`: `(value: string) => void` - Function to copy text
+
+### useColorMode
+
+Manage color theme with localStorage persistence and system preference detection.
+
+**Location**: `@workspace/core/hooks/use-color-mode`
+
+```typescript
+import { useColorMode } from '@workspace/core/hooks/use-color-mode'
+
+function ThemeToggle() {
+  const [colorMode, setColorMode] = useColorMode({
+    selector: 'html',
+    attribute: 'class',
+    initialValue: 'auto',
+    storageKey: 'app-color-scheme',
+  })
+
+  return (
+    <button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}>
+      {colorMode === 'dark' ? '🌙' : '☀️'}
+    </button>
+  )
+}
+```
+
+<ParamField path="options.selector" type="string" default="'html'">
+  CSS selector for the target element
+</ParamField>
+
+<ParamField path="options.attribute" type="string" default="'class'">
+  HTML attribute to modify ('class' or custom attribute)
+</ParamField>
+
+<ParamField path="options.initialValue" type="'light' | 'dark' | 'auto'" default="'auto'">
+  Initial color mode
+</ParamField>
+
+<ParamField path="options.storageKey" type="string" default="'app-color-scheme'">
+  localStorage key for persistence
+</ParamField>
+
+<ParamField path="options.disableTransition" type="boolean" default="true">
+  Disable CSS transitions during mode switch
+</ParamField>
+
+**Returns**: `[colorMode, setColorMode]` - Current mode and setter
+
+---
+
+## Timer Hooks
+
+### useInterval
+
+Declarative interval with automatic cleanup and pause/resume.
+
+**Location**: `@workspace/core/hooks/use-interval`
+
+```typescript
+import { useInterval } from '@workspace/core/hooks/use-interval'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+  const [delay, setDelay] = useState(1000)
+
+  // Clear function can be called to manually stop
+  const clear = useInterval(
+    () => setCount(count + 1),
+    delay,
+    { immediate: true }
+  )
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setDelay(null)}>Pause</button>
+      <button onClick={() => setDelay(1000)}>Resume</button>
+      <button onClick={clear}>Stop</button>
+    </div>
+  )
+}
+```
+
+<ParamField path="fn" type="() => void" required>
+  Callback function to execute at each interval
+</ParamField>
+
+<ParamField path="delay" type="number | null | undefined">
+  Interval duration in milliseconds. Set to null/undefined to pause.
+</ParamField>
+
+<ParamField path="options.immediate" type="boolean" default="false">
+  Execute callback immediately on mount/delay change
+</ParamField>
+
+**Returns**: `() => void` - Function to manually clear the interval
+
+### useTimeout
+
+Declarative timeout with automatic cleanup.
+
+**Location**: `@workspace/core/hooks/use-timeout`
+
+```typescript
+import { useTimeout } from '@workspace/core/hooks/use-timeout'
+
+function DelayedMessage() {
+  const [visible, setVisible] = useState(false)
+
+  const clear = useTimeout(() => {
+    setVisible(true)
+  }, 3000)
+
+  return visible ? <p>Message appeared!</p> : null
+}
+```
+
+<ParamField path="fn" type="() => void" required>
+  Callback function to execute after timeout
+</ParamField>
+
+<ParamField path="delay" type="number | null | undefined">
+  Timeout duration in milliseconds. Set to null/undefined to cancel.
+</ParamField>
+
+**Returns**: `() => void` - Function to manually clear the timeout
+
+### useRafInterval
+
+RequestAnimationFrame-based interval for smooth animations.
+
+**Location**: `@workspace/core/hooks/use-raf-interval`
+
+**Returns**: `() => void` - Function to clear the interval
+
+### useRafTimeout
+
+RequestAnimationFrame-based timeout for smooth animations.
+
+**Location**: `@workspace/core/hooks/use-raf-timeout`
+
+**Returns**: `() => void` - Function to clear the timeout
+
+---
+
+## State Management Hooks
+
+### useControllableValue
+
+Manage both controlled and uncontrolled component states.
+
+**Location**: `@workspace/core/hooks/use-controllable-value`
+
+```typescript
+import { useControllableValue } from '@workspace/core/hooks/use-controllable-value'
+
+function CustomInput(props) {
+  const [value, setValue] = useControllableValue(props, {
+    defaultValue: '',
+  })
+
+  return (
+    <input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  )
+}
+
+// Controlled usage
+<CustomInput value={value} onChange={setValue} />
+
+// Uncontrolled usage
+<CustomInput defaultValue="initial" />
+```
+
+<ParamField path="props" type="object" required>
+  Component props potentially containing value/onChange
+</ParamField>
+
+<ParamField path="options.defaultValue" type="T">
+  Default value for uncontrolled mode
+</ParamField>
+
+<ParamField path="options.valuePropName" type="string" default="'value'">
+  Name of the value prop
+</ParamField>
+
+<ParamField path="options.trigger" type="string" default="'onChange'">
+  Name of the change handler prop
+</ParamField>
+
+**Returns**: `[T, (value: T) => void]` - Current value and setter
+
+### useResetState
+
+State with a reset function to return to initial value.
+
+**Location**: `@workspace/core/hooks/use-reset-state`
+
+```typescript
+import { useResetState } from '@workspace/core/hooks/use-reset-state'
+
+function Form() {
+  const [formData, setFormData, resetFormData] = useResetState({
+    name: '',
+    email: '',
+  })
+
+  return (
+    <form onReset={resetFormData}>
+      <input
+        value={formData.name}
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+      />
+      <button type="reset">Reset</button>
+    </form>
+  )
+}
+```
+
+**Returns**: `[state, setState, resetState]`
+
+### useDynamicList
+
+Manage dynamic lists with unique keys for each item.
+
+**Location**: `@workspace/core/hooks/use-dynamic-list`
+
+```typescript
+import { useDynamicList } from '@workspace/core/hooks/use-dynamic-list'
+
+function TodoList() {
+  const { list, remove, getKey, insert, push } = useDynamicList(['Task 1'])
+
+  return (
+    <div>
+      {list.map((item, index) => (
+        <div key={getKey(index)}>
+          <span>{item}</span>
+          <button onClick={() => remove(index)}>Delete</button>
+        </div>
+      ))}
+      <button onClick={() => push('New Task')}>Add</button>
+    </div>
+  )
+}
+```
+
+**Returns**:
+- `list`: `T[]` - Current list
+- `insert`: `(index: number, item: T) => void` - Insert at position
+- `merge`: `(index: number, items: T[]) => void` - Merge multiple items
+- `replace`: `(index: number, item: T) => void` - Replace item
+- `remove`: `(index: number) => void` - Remove item
+- `getKey`: `(index: number) => number` - Get unique key
+- `getIndex`: `(key: number) => number` - Get index from key
+- `move`: `(oldIndex: number, newIndex: number) => void` - Move item
+- `push`: `(item: T) => void` - Add to end
+- `pop`: `() => void` - Remove from end
+- `unshift`: `(item: T) => void` - Add to start
+- `shift`: `() => void` - Remove from start
+- `resetList`: `(newList: T[]) => void` - Reset entire list
+
+### useHistoryTravel
+
+Time-travel state management with undo/redo.
+
+**Location**: `@workspace/core/hooks/use-history-travel`
+
+---
+
+## Lifecycle Hooks
+
+### useMount
+
+Execute a function once when component mounts.
+
+**Location**: `@workspace/core/hooks/use-mount`
+
+```typescript
+import { useMount } from '@workspace/core/hooks/use-mount'
+
+function Analytics() {
+  useMount(() => {
+    console.log('Component mounted')
+    trackPageView()
+  })
+
+  return <div>Content</div>
+}
+```
+
+<ParamField path="fn" type="() => void" required>
+  Function to execute on mount
+</ParamField>
+
+### useUpdateEffect
+
+Run effect on updates only, not on mount.
+
+**Location**: `@workspace/core/hooks/use-update-effect`
+
+```typescript
+import { useUpdateEffect } from '@workspace/core/hooks/use-update-effect'
+
+function SearchResults({ query }) {
+  useUpdateEffect(() => {
+    // Only runs when query changes, not on initial mount
+    fetchResults(query)
+  }, [query])
+
+  return <div>Results...</div>
+}
+```
+
+### useUpdateLayoutEffect
+
+Run layout effect on updates only.
+
+**Location**: `@workspace/core/hooks/use-update-layout-effect`
+
+### useUpdate
+
+Force component re-render.
+
+**Location**: `@workspace/core/hooks/use-update`
+
+```typescript
+import { useUpdate } from '@workspace/core/hooks/use-update'
+
+function Component() {
+  const update = useUpdate()
+
+  return (
+    <button onClick={update}>
+      Force Re-render
+    </button>
+  )
+}
+```
+
+**Returns**: `() => void` - Function to trigger re-render
+
+---
+
+## Utility Hooks
+
+### useLatest
+
+Get the latest value without closure issues.
+
+**Location**: `@workspace/core/hooks/use-latest`
+
+```typescript
+import { useLatest } from '@workspace/core/hooks/use-latest'
+
+function Component({ onChange }) {
+  const latestOnChange = useLatest(onChange)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Always calls the latest onChange
+      latestOnChange.current()
+    }, 1000)
+    return () => clearInterval(timer)
+  }, []) // No dependency on onChange needed
+}
+```
+
+<ParamField path="value" type="T" required>
+  Value to keep up-to-date
+</ParamField>
+
+**Returns**: `React.MutableRefObject<T>` - Ref containing latest value
+
+### useMemoizedFn
+
+Memoize function with stable reference.
+
+**Location**: `@workspace/core/hooks/use-memoized-fn`
+
+```typescript
+import { useMemoizedFn } from '@workspace/core/hooks/use-memoized-fn'
+
+function Form() {
+  const [data, setData] = useState({})
+
+  // Function reference never changes
+  const handleSubmit = useMemoizedFn(() => {
+    console.log('Submitting:', data)
+  })
+
+  return <button onClick={handleSubmit}>Submit</button>
+}
+```
+
+<ParamField path="fn" type="Function" required>
+  Function to memoize
+</ParamField>
+
+**Returns**: Memoized function with stable reference
+
+### useMultipleRefs
+
+Combine multiple refs into one.
+
+**Location**: `@workspace/core/hooks/use-multiple-refs`
+
+### useSelections
+
+Manage multi-select state.
+
+**Location**: `@workspace/core/hooks/use-selections`
+
+### useAutoScroll
+
+Auto-scroll to bottom when content changes.
+
+**Location**: `@workspace/core/hooks/use-auto-scroll`
+
+---
+
+## Hook Factories
+
+### createUseStorageState
+
+Factory for creating custom storage hooks.
+
+**Location**: `@workspace/core/hooks/create-use-storage-state`
+
+```typescript
+import { createUseStorageState } from '@workspace/core/hooks/create-use-storage-state'
+
+// Create custom storage hook
+const useCustomStorage = createUseStorageState(() => customStorage)
+```
+
+### createUpdateEffect
+
+Factory for creating custom update effect hooks.
+
+**Location**: `@workspace/core/hooks/create-update-effect`

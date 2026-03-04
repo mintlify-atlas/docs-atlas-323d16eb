@@ -1,0 +1,505 @@
+---
+title: Next.js Web App
+description: Next.js 16 full-stack application with App Router, running on port 3002
+---
+
+## Overview
+
+The web app is a full-stack application built with Next.js 16, featuring server-side rendering, API routes, database integration, and authentication. It provides a complete solution for building modern web applications.
+
+**Key Information:**
+- Port: `3002`
+- Framework: Next.js 16.1.6
+- Runtime: React 19.2.4
+- Database: PostgreSQL with Drizzle ORM
+- Auth: Better Auth 1.4.18
+
+## Tech Stack
+
+### Core Dependencies
+
+- **Next.js**: 16.1.6 - React framework with App Router
+- **React**: 19.2.4 - UI library with React Compiler support
+- **TanStack Query**: 5.90.21 - Data fetching and caching
+- **next-safe-action**: 8.0.11 - Type-safe server actions
+
+### Database & ORM
+
+- **Drizzle ORM**: 0.45.1 - Type-safe SQL ORM
+- **Drizzle Kit**: 0.31.9 - Database toolkit
+- **drizzle-zod**: 0.8.3 - Zod schema generation
+- **drizzle-seed**: 0.3.1 - Database seeding
+- **pg**: 8.18.0 - PostgreSQL client
+
+### Authentication
+
+- **Better Auth**: 1.4.18 - Full-featured authentication library
+
+### UI & Styling
+
+- **Tailwind CSS**: 4.1.18 - Utility-first CSS framework
+- **React Aria Components**: 1.15.1 - Accessible UI primitives
+- **Motion**: 12.34.0 - Animation library
+- **Radix UI**: Scroll area components
+- **Sonner**: 2.0.7 - Toast notifications
+- **Recharts**: 3.7.0 - Chart components
+- **next-themes**: 0.4.6 - Theme management
+
+### Forms & Validation
+
+- **react-hook-form**: 7.71.1 - Form state management
+- **@hookform/resolvers**: 5.2.2 - Form validation resolvers
+- **@next-safe-action/adapter-react-hook-form**: 2.0.0 - Server action integration
+- **Zod**: 4.3.6 - Schema validation
+
+### Internationalization
+
+- **next-intl**: 4.8.2 - i18n for Next.js
+
+### State Management
+
+- **nuqs**: 2.8.8 - URL query state management
+- **React Stately**: 3.44.0 - State management for UI components
+
+### Data Fetching
+
+- **ky**: 1.14.3 - HTTP client
+- **radashi**: 12.7.1 - Utility library
+
+### Observability
+
+- **@vercel/otel**: 2.1.0 - Vercel OpenTelemetry integration
+- **OpenTelemetry**: Full instrumentation suite for Node.js
+  - `@opentelemetry/api`: 1.9.0
+  - `@opentelemetry/api-logs`: 0.212.0
+  - `@opentelemetry/sdk-logs`: 0.212.0
+  - `@opentelemetry/sdk-metrics`: 2.5.1
+  - Instrumentation for HTTP, DNS, PostgreSQL, and more
+
+### Security
+
+- **@nosecone/next**: 1.1.0 - Security headers middleware
+
+### SEO
+
+- **schema-dts**: 1.1.5 - TypeScript definitions for Schema.org
+
+### Developer Tools
+
+- **@tanstack/react-query-devtools**: 5.91.3
+- **@tanstack/react-devtools**: 0.9.5
+- **React Compiler**: 1.0.0 - babel-plugin-react-compiler
+- **Playwright**: 1.58.2 - E2E testing
+
+## Development
+
+### Available Scripts
+
+<CodeGroup>
+
+```bash Development
+# Start development server with .env.dev
+bun dev
+
+# Start with production environment
+bun dev:prod
+```
+
+```bash Build
+# Development build
+bun build
+
+# Production build
+bun build:prod
+
+# Start production server
+bun start
+
+# Build and start
+bun build-and-preview
+```
+
+```bash Type Generation
+# Generate Next.js types and run type check
+bun typecheck
+```
+
+```bash Database
+# Pull database schema
+bun db:pull
+
+# Push schema changes
+bun db:push
+
+# Generate migrations
+bun db:gen
+
+# Run migrations
+bun db:migrate
+
+# Open Drizzle Studio (port 3003)
+bun db:studio
+```
+
+```bash Authentication
+# Generate auth schema
+bun auth:gen
+
+# After auth changes, run:
+bun auth:gen && bun db:gen && bun db:migrate
+```
+
+```bash Testing
+# Install Playwright browsers
+bun test:install
+
+# Run E2E tests
+bun test
+
+# Run tests with UI mode
+bun test:ui
+
+# Show test report
+bun test:report
+
+# CI testing with sharding
+bun test:ci
+```
+
+```bash Utilities
+# Check site metadata
+bun check-site-meta
+
+# Analyze bundle size
+bun analyze-bundle-size
+
+# Generate PWA assets
+bun pwa-assets:gen
+```
+
+</CodeGroup>
+
+## Project Structure
+
+```
+apps/web/
+├── src/
+│   ├── app/            # Next.js App Router pages
+│   ├── auth/           # Authentication configuration
+│   ├── core/           # Core utilities and components
+│   ├── db/             # Database schema and migrations
+│   │   └── auth-schema.ts # Generated auth schema
+│   ├── instrumentation.ts # OpenTelemetry setup
+│   └── proxy.ts        # API proxy configuration
+├── public/             # Static assets
+├── docs/               # Documentation
+│   ├── database.md
+│   ├── observability.md
+│   └── seo.md
+├── drizzle.config.ts
+├── next.config.ts
+├── playwright.config.ts
+├── tsconfig.json
+├── pwa-assets.config.ts
+└── package.json
+```
+
+## Configuration Files
+
+### Next.js Configuration
+
+**File:** `next.config.ts`
+
+Configures:
+- React Compiler
+- Nosecone security headers
+- Tailwind CSS
+- Type generation
+- Experimental features
+
+### Drizzle Configuration
+
+**File:** `drizzle.config.ts`
+
+Database connection and migration settings:
+- Schema location: `./src/db/schema`
+- Migrations: `./src/db/migrations`
+- Uses environment variables from `.env.dev`
+
+### TypeScript
+
+**File:** `tsconfig.json`
+
+Configured for Next.js with path aliases.
+
+### Playwright
+
+**File:** `playwright.config.ts`
+
+E2E testing configuration with Chromium.
+
+## Environment Variables
+
+<Note>
+The app uses `@dotenvx/dotenvx` for environment variable management. Environment files are copied to `.env.local` during build/dev commands.
+</Note>
+
+**Environment Files:**
+- `.env.dev` - Development environment
+- `.env.prod` - Production environment
+- `.env.local` - Active environment (generated)
+
+**Environment Validation:**
+Uses `@t3-oss/env-nextjs` for type-safe environment variables.
+
+## Database
+
+### Schema Management
+
+<Warning>
+**Naming Convention**: Use `snake_case` for all table and column names.
+</Warning>
+
+**Workflow for Schema Changes:**
+
+1. Modify schema files in `src/db/schema`
+2. Generate migration: `bun db:gen`
+3. Apply migration: `bun db:migrate`
+4. Commit migration files to version control
+
+### Drizzle Studio
+
+Access the database GUI on port 3003:
+
+```bash
+bun db:studio
+```
+
+### Database Seeding
+
+The app includes `drizzle-seed` (v0.3.1) for database seeding.
+
+## Authentication
+
+The app uses Better Auth for authentication with automatic schema generation.
+
+### Auth Configuration
+
+**File:** `src/auth/utils/auth.ts`
+
+### Schema Generation
+
+When adding/removing/changing auth schema:
+
+```bash
+bun auth:gen       # Generate auth types
+bun db:gen         # Generate database migration
+bun db:migrate     # Apply migration
+```
+
+### OpenAPI Reference
+
+Better Auth provides an OpenAPI reference:
+
+```
+http://localhost:3002/api/auth/reference
+```
+
+## Testing
+
+### End-to-End Testing
+
+<Info>
+**CI Limitation**: E2E tests cannot run in CI because auth must be mocked on the server (RSC/server actions), and Next.js experimental test mode only intercepts external fetch calls, not route handlers. Tests run locally with a local database.
+</Info>
+
+**Test Configuration:**
+- Uses `.env.dev` for test environment
+- Requires local database
+- Supports test sharding
+- UI mode available for debugging
+
+```bash
+# Run tests locally
+bun test
+
+# Interactive UI mode
+bun test:ui
+
+# View test report
+bun test:report
+```
+
+## Observability
+
+### OpenTelemetry Instrumentation
+
+<Warning>
+**Server-Side Only**: Instrument on the server only using `@/core/utils/logger`. OpenTelemetry in the browser does not support logs.
+</Warning>
+
+**Features:**
+- Full Node.js instrumentation
+- PostgreSQL query tracing
+- HTTP request tracing
+- Metrics export via OTLP
+- Log export via OTLP
+
+**Setup:** `src/instrumentation.ts`
+
+### Logging
+
+Use the logger from `@workspace/core` for console logging.
+
+## SEO & Metadata
+
+### Server-Side Metadata
+
+Generate metadata at the server level:
+
+```tsx
+import { createMetadata, JsonLd } from '@/core/utils/seo'
+import { createWebSite, createWebPage } from '@/core/utils/seo'
+
+export const metadata = createMetadata({
+  title: 'Page Title',
+  description: 'Page description',
+})
+
+function Page() {
+  const ldParams = {
+    url: process.env.NODE_ENV === 'production' ? PROD_APP_URL : DEV_APP_URL,
+    title: 'Page Title',
+    description: 'Page description',
+  }
+  
+  return (
+    <JsonLd
+      graphs={[
+        createWebSite(ldParams),
+        createWebPage(ldParams),
+      ]}
+    />
+  )
+}
+```
+
+### Open Graph Images
+
+Generate dynamic OG images:
+
+```
+GET /api/og?title=My%20Title
+```
+
+### Sitemap
+
+<Note>
+**Known Issue**: Sitemap generation during build is currently not working. The file is renamed to `sitemap.txt` as a workaround.
+</Note>
+
+## Deployment
+
+### Build Output
+
+Next.js builds are output to the `.next/` directory.
+
+```bash
+# Production build
+bun build:prod
+
+# Start production server
+bun start
+```
+
+### Bundle Analysis
+
+Analyze the production bundle:
+
+```bash
+bun analyze-bundle-size
+```
+
+This uses Next.js experimental bundle analysis.
+
+## Performance
+
+### React Compiler
+
+The app uses the official React Compiler (v1.0.0) for automatic optimizations.
+
+### Security Headers
+
+The app uses `@nosecone/next` for security headers including:
+- Content Security Policy
+- X-Frame-Options
+- X-Content-Type-Options
+- And more
+
+## Server Actions
+
+### Type-Safe Actions
+
+Use `next-safe-action` for type-safe server actions:
+
+```tsx
+import { createServerAction } from '@/core/lib/safe-action'
+
+export const myAction = createServerAction
+  .schema(mySchema)
+  .action(async ({ parsedInput }) => {
+    // Server-side logic
+    return { success: true }
+  })
+```
+
+### Form Integration
+
+Integrate server actions with react-hook-form:
+
+```tsx
+import { useForm } from 'react-hook-form'
+import { useAction } from '@next-safe-action/adapter-react-hook-form'
+
+function MyForm() {
+  const form = useForm()
+  const { execute, isExecuting } = useAction(myAction)
+  
+  return <form onSubmit={form.handleSubmit(execute)}>...</form>
+}
+```
+
+## Workspace Integration
+
+The web app uses shared packages from the monorepo:
+
+- `@workspace/core` - Shared utilities and components
+- `@workspace/typescript-config` - Shared TypeScript configuration
+
+## Known Issues & Todos
+
+<Warning>
+**Current Issues:**
+- Sitemap generation during build doesn't work (workaround: renamed to sitemap.txt)
+- E2E tests cannot run in CI (must run locally with local DB)
+</Warning>
+
+**Planned Improvements:**
+- Install oRPC (no agent skills yet)
+- Consider migrating to `@tanstack/react-form` (waiting for next-safe-action support)
+- Upgrade to Drizzle beta
+- Implement database seeding script with drizzle-seed
+
+## Best Practices
+
+<Tip>
+**Database Changes**: Always commit migration files after running `bun db:gen`. This ensures schema changes are version controlled.
+</Tip>
+
+<Tip>
+**Auth Changes**: When modifying authentication schema, run all three commands in sequence: `bun auth:gen && bun db:gen && bun db:migrate`
+</Tip>
+
+<Note>
+**Environment Management**: Use the npm scripts (`bun dev`, `bun build:prod`) which automatically copy the correct environment file to `.env.local`.
+</Note>

@@ -1,0 +1,272 @@
+---
+title: Development Workflow
+description: Learn how to develop applications in the FE Monorepo, including running apps, linting, type checking, and using monorepo commands.
+---
+
+## Overview
+
+The FE Monorepo uses Bun as the package manager and includes three main applications: SPA (React), Web (Next.js), and Expo (React Native). This guide covers the essential development workflows for working with the monorepo.
+
+## Prerequisites
+
+- Node.js 24.14.0 or higher
+- Bun 1.3.10 or higher
+- For Expo development: Java 17+, EAS CLI (`npm i -g eas-cli`)
+
+## Running Applications
+
+### SPA Application (Port 3001)
+
+The SPA is a React 19 application built with Vite and TanStack Router.
+
+<CodeGroup>
+```bash Development
+bun spa dev
+```
+
+```bash Development (Production Mode)
+bun spa dev:prod
+```
+
+```bash Preview Build
+bun spa build-and-preview
+```
+</CodeGroup>
+
+### Web Application (Port 3002)
+
+The Web app is a Next.js 16 full-stack application.
+
+<CodeGroup>
+```bash Development
+bun web dev
+```
+
+```bash Development (Production Mode)
+bun web dev:prod
+```
+
+```bash Preview Build
+bun web build-and-preview
+```
+</CodeGroup>
+
+### Expo Application
+
+The Expo app is a React Native application built with Expo 53.
+
+<Steps>
+  <Step title="Pull Environment Variables">
+    Pull EAS project environment variables to your local environment:
+    
+    ```bash
+    bun expo env:pull:dev
+    ```
+  </Step>
+  
+  <Step title="Prebuild Native Projects">
+    Generate native projects (Android/iOS folders) - required when changing `app.json` or installing native libraries:
+    
+    ```bash
+    cd apps/expo
+    bun prebuild
+    ```
+  </Step>
+  
+  <Step title="Create Development Build">
+    Build the app for your platform:
+    
+    <CodeGroup>
+    ```bash Android (Local)
+    bun build:android:dev:local
+    ```
+    
+    ```bash iOS Simulator (Local)
+    bun build:ios:dev-sim:local
+    ```
+    
+    ```bash Android (EAS Cloud)
+    bun build:android:dev
+    ```
+    
+    ```bash iOS Device (EAS Cloud)
+    bun build:ios:dev
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Start Development Server">
+    Run the development server:
+    
+    ```bash
+    bun expo dev
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  For iOS simulator builds, you'll get a `.tar.gz` file. Install it using `bun expo ios:sim:install`.
+</Info>
+
+<Warning>
+  Don't use VPN when developing Expo apps, or `fetch` will not work properly.
+</Warning>
+
+## Linting and Type Checking
+
+### Lint All Packages
+
+```bash
+# Run ESLint on all packages
+bun lint
+
+# Auto-fix linting issues
+bun lint:fix
+
+# Inspect ESLint configuration
+bun lint:inspector
+```
+
+### Type Check All Apps
+
+```bash
+# Type check all apps in parallel
+bun typecheck
+
+# Type check individual apps
+bun spa:typecheck
+bun web:typecheck
+bun expo:typecheck
+
+# Run both lint and typecheck together
+bun lint-typecheck
+```
+
+## Monorepo Commands
+
+The monorepo uses Bun workspaces with filter commands for running scripts in specific packages.
+
+### Workspace Filters
+
+<CodeGroup>
+```bash SPA Commands
+# Run any SPA script (with better logging)
+bun spa <script-name>
+
+# Example: build the SPA
+bun spa build
+```
+
+```bash Web Commands
+# Run any Web script (with better logging)
+bun web <script-name>
+
+# Example: open Drizzle Studio
+bun web db:studio
+```
+
+```bash Expo Commands
+# Run any Expo script (with better logging)
+bun expo <script-name>
+
+# Example: run type check
+bun expo typecheck
+```
+</CodeGroup>
+
+### CI Filters
+
+For CI environments, use the CI-specific filters that omit the `--elide-lines=0` flag:
+
+```bash
+bun spa:ci <script-name>
+bun web:ci <script-name>
+bun expo:ci <script-name>
+```
+
+## Database Management (Web App)
+
+The Web app uses Drizzle ORM with PostgreSQL.
+
+<Steps>
+  <Step title="Generate Auth Schema">
+    Generate Better Auth schema:
+    
+    ```bash
+    bun web auth:gen
+    ```
+  </Step>
+  
+  <Step title="Push Schema Changes">
+    Push schema changes to database:
+    
+    ```bash
+    bun web db:push
+    ```
+  </Step>
+  
+  <Step title="Open Drizzle Studio">
+    Open the database GUI at `http://localhost:3003`:
+    
+    ```bash
+    bun web db:studio
+    ```
+  </Step>
+</Steps>
+
+## Observability
+
+The monorepo includes OpenTelemetry integration with Grafana for observability.
+
+<Steps>
+  <Step title="Start Grafana Stack">
+    Run the Grafana LGTM container (Prometheus, Tempo, Loki, Pyroscope):
+    
+    ```bash
+    bun compose:up
+    ```
+  </Step>
+  
+  <Step title="Access Dashboard">
+    Open Grafana dashboard at `http://localhost:3111`:
+    
+    - Username: `admin`
+    - Password: `admin`
+  </Step>
+</Steps>
+
+## Cleaning the Monorepo
+
+Remove all build artifacts, dependencies, and caches:
+
+```bash
+bun clean
+```
+
+<Warning>
+  This command removes `node_modules`, build outputs, and locks. You'll need to run `bun install` afterwards.
+</Warning>
+
+## Development Tips
+
+<Note>
+  - Always use exact versions for dependencies
+  - For Expo, regenerate native projects (`bun prebuild`) when changing `app.json` or installing native libraries
+  - Use `bun --parallel` prefix to run multiple scripts concurrently
+  - The source of truth for environment variables is local `.env` files for SPA/Web, and EAS project environment for Expo
+</Note>
+
+## Quick Reference
+
+| Task | Command |
+|------|--------|
+| Install dependencies | `bun install` |
+| Run SPA dev server | `bun spa dev` |
+| Run Web dev server | `bun web dev` |
+| Run Expo dev server | `bun expo dev` |
+| Lint all packages | `bun lint` |
+| Type check all apps | `bun typecheck` |
+| Clean monorepo | `bun clean` |
+| Build SPA | `bun spa build` |
+| Build Web | `bun web build` |
+| Build Expo (Android) | `bun expo build:android:dev:local` |

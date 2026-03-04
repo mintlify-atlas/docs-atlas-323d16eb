@@ -1,80 +1,442 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get your FE Monorepo development environment up and running in minutes
 ---
 
-## Get started in three steps
+This guide will walk you through setting up the FE Monorepo and running all three applications: the React SPA, Next.js web app, and Expo mobile app.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, ensure you have the following installed:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+- **Node.js** >= 24.14.0
+- **Bun** 1.3.10 or later
+- **Git** for version control
 
-### Step 2: Deploy your changes
+<Note>
+The monorepo uses Bun as its package manager. If you don't have Bun installed, visit [bun.sh](https://bun.sh) for installation instructions.
+</Note>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
+## Installation
+
+<Steps>
+
+<Step title="Clone the repository">
+
+Clone the repository to your local machine:
+
+```bash
+git clone <your-repo-url>
+cd fe-monorepo
+```
+
+</Step>
+
+<Step title="Install dependencies">
+
+Install all dependencies for the monorepo using Bun:
+
+```bash
+bun install
+```
+
+This command will install dependencies for all apps and packages in the workspace.
+
+</Step>
+
+<Step title="Set up environment variables">
+
+Each app requires environment variables for configuration. Copy the example files and configure them:
+
+<Tabs>
+  <Tab title="SPA">
+    ```bash
+    cd apps/spa
+    cp .env.dev.example .env.dev
+    # Edit .env.dev with your configuration
+    ```
+  </Tab>
+  
+  <Tab title="Web">
+    ```bash
+    cd apps/web
+    cp .env.dev.example .env.dev
+    # Edit .env.dev with your configuration
+    ```
+  </Tab>
+  
+  <Tab title="Expo">
+    ```bash
+    cd apps/expo
+    # Pull environment variables from EAS
+    bun env:pull:dev
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+Never commit `.env.dev` or `.env.prod` files to version control. These files contain sensitive information.
+</Warning>
+
+</Step>
+
+</Steps>
+
+## Running the applications
+
+You can run each application independently from the monorepo root.
+
+### React SPA
+
+The Single Page Application runs on port **3001** and uses React 19 with TanStack Router.
+
+<CodeGroup>
+
+```bash Development
+bun spa dev
+```
+
+```bash Production mode
+bun spa dev:prod
+```
+
+```bash Build
+bun spa build
+```
+
+```bash Preview build
+bun spa preview
+```
+
+</CodeGroup>
+
+Open [http://localhost:3001](http://localhost:3001) to view the app.
+
+<Info>
+The SPA uses Vite for blazing-fast development with Hot Module Replacement (HMR).
+</Info>
+
+### Next.js Web App
+
+The full-stack Next.js app runs on port **3002** and includes server-side rendering, API routes, and database integration.
+
+<CodeGroup>
+
+```bash Development
+bun web dev
+```
+
+```bash Production mode
+bun web dev:prod
+```
+
+```bash Build
+bun web build
+```
+
+```bash Start production server
+bun web start
+```
+
+</CodeGroup>
+
+Open [http://localhost:3002](http://localhost:3002) to view the app.
+
+<Accordion title="Database setup for Web app">
+  The Web app uses Drizzle ORM with PostgreSQL. You'll need to set up your database:
+
+  ```bash
+  # Generate database schema
+  bun web db:gen
+  
+  # Push schema to database
+  bun web db:push
+  
+  # Open Drizzle Studio to manage your database
+  bun web db:studio
+  ```
+  
+  Drizzle Studio will be available at [http://localhost:3003](http://localhost:3003).
 </Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+### Expo Mobile App
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+The React Native app uses Expo 53 with development builds.
 
-### Step 3: Go live
+<Warning>
+Expo requires additional setup. You need Java 17+ and EAS CLI installed globally. See the [Expo documentation](https://docs.expo.dev/get-started/set-up-your-environment/) for platform-specific requirements.
+</Warning>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Steps>
+
+<Step title="Install EAS CLI">
+
+```bash
+npm i -g eas-cli
+```
+
+</Step>
+
+<Step title="Create a development build">
+
+For the first time, you need to create a development build:
+
+<CodeGroup>
+
+```bash Android (local)
+bun expo prebuild
+bun expo build:android:dev:local
+```
+
+```bash iOS Simulator (local)
+bun expo prebuild
+bun expo build:ios:dev-sim:local
+```
+
+```bash Cloud build (Android)
+bun expo build:android:dev
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Start the development server">
+
+Once you have the development build installed on your device/simulator:
+
+```bash
+bun expo dev
+```
+
+This starts the Metro bundler. Scan the QR code with your development build app.
+
+</Step>
+
+</Steps>
+
+<Info>
+You only need to rebuild when you:
+- Install native dependencies
+- Change `app.json` configuration
+- Upgrade Expo SDK
+</Info>
+
+## Running from app directories
+
+You can also run commands from within each app directory:
+
+```bash
+# Navigate to the app
+cd apps/spa
+
+# Run commands directly
+bun dev
+bun build
+bun typecheck
+```
+
+This approach is useful when you're focused on a single app.
+
+## Development workflow
+
+Here are common development tasks you'll perform:
+
+### Type checking
+
+Run type checking across all apps:
+
+```bash
+bun typecheck
+```
+
+Or for a specific app:
+
+```bash
+bun spa:typecheck
+bun web:typecheck
+bun expo:typecheck
+```
+
+### Linting
+
+The monorepo uses ESLint with a shared configuration:
+
+<CodeGroup>
+
+```bash Lint all files
+bun lint
+```
+
+```bash Auto-fix issues
+bun lint:fix
+```
+
+```bash Inspect config
+bun lint:inspector
+```
+
+</CodeGroup>
+
+### Testing
+
+Each app has its own test suite using Playwright (web apps) or Maestro (Expo):
+
+<Tabs>
+  <Tab title="SPA">
+    ```bash
+    # Run tests (requires dev server running)
+    bun spa test
+    
+    # Run tests with UI
+    bun spa test:ui
+    
+    # Install test browsers
+    bun spa test:install
+    ```
+  </Tab>
+  
+  <Tab title="Web">
+    ```bash
+    # Run tests (requires dev server running)
+    bun web test
+    
+    # Run tests with UI
+    bun web test:ui
+    
+    # Install test browsers
+    bun web test:install
+    ```
+  </Tab>
+  
+  <Tab title="Expo">
+    ```bash
+    # Run E2E tests on development build
+    bun expo test:dev
+    
+    # Run E2E tests on production build
+    bun expo test:prod
+    
+    # Open Maestro Studio
+    bun expo test:ui
+    ```
+  </Tab>
+</Tabs>
+
+### Upgrading dependencies
+
+<Warning>
+Always use exact versions for dependencies in this monorepo.
+</Warning>
+
+```bash
+# Check for outdated dependencies
+bun bump:deps
+
+# Install updates
+bun install
+
+# Verify everything works
+bun lint-typecheck
+bun spa test
+bun web test
+```
+
+## Using shared packages
+
+The monorepo includes shared packages that all apps can use:
+
+### @workspace/core
+
+Shared business logic, types, hooks, and utilities for browser and mobile apps:
+
+```typescript
+// Import from the core package
+import { errorResponseSchema } from '@workspace/core/apis/core'
+import type { ErrorResponseSchema } from '@workspace/core/types/api'
+
+// Available exports:
+// - apis/* - API schemas and types
+// - constants/* - Shared constants
+// - hooks/* - React hooks
+// - libs/* - Utility libraries
+// - services/* - Business logic
+// - types/* - TypeScript types
+// - utils/* - Helper functions
+```
+
+### @workspace/typescript-config
+
+Shared TypeScript configuration used across all apps and packages:
+
+```json
+{
+  "extends": "@workspace/typescript-config/base.json"
+}
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you have your development environment running:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Learn about the monorepo structure and how packages are organized
+  </Card>
+  
+  <Card title="SPA Guide" icon="react" href="/apps/spa">
+    Deep dive into the React SPA architecture and features
+  </Card>
+  
+  <Card title="Web Guide" icon="n" href="/apps/web">
+    Explore the Next.js app with SSR and API routes
+  </Card>
+  
+  <Card title="Expo Guide" icon="mobile" href="/apps/expo">
+    Build native mobile apps with Expo and React Native
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Troubleshooting
+
+<Accordion title="Port already in use">
+  If you see an error about a port being in use:
+  
+  ```bash
+  # Find and kill the process using the port
+  lsof -ti:3001 | xargs kill -9  # for SPA
+  lsof -ti:3002 | xargs kill -9  # for Web
+  ```
+</Accordion>
+
+<Accordion title="Dependency installation fails">
+  Clear the Bun cache and reinstall:
+  
+  ```bash
+  bun pm cache rm
+  bun install
+  ```
+</Accordion>
+
+<Accordion title="Clean install from scratch">
+  If you encounter persistent issues, perform a clean installation:
+  
+  ```bash
+  bun clean
+  ```
+  
+  This removes all `node_modules`, build artifacts, and caches, then reinstalls everything.
+</Accordion>
+
+<Accordion title="Expo build fails">
+  For Expo-specific issues:
+  
+  ```bash
+  # Check for known issues
+  cd apps/expo
+  bun expo doctor
+  
+  # Clean prebuild
+  bun prebuild
+  ```
+</Accordion>

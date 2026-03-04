@@ -1,0 +1,270 @@
+---
+title: Core Package
+description: Shared core module providing isomorphic utilities, hooks, services, and APIs for all apps in the monorepo
+---
+
+## Overview
+
+The `@workspace/core` package is the shared core module that provides common functionality across all apps and packages in the monorepo. It is designed to be isomorphic, meaning it can be used in both browser and server environments.
+
+## Installation
+
+The core package is available as a workspace package and can be imported in any app or package within the monorepo:
+
+```json
+{
+  "dependencies": {
+    "@workspace/core": "workspace:*"
+  }
+}
+```
+
+## Package Structure
+
+The core package exports modules organized by category:
+
+```plaintext
+@workspace/core/
+├── apis/          # API client instances and configurations
+├── assets/        # Shared fonts and images
+├── constants/     # Shared constants and configuration values
+├── hooks/         # React hooks for common functionality
+├── libs/          # Third-party library configurations (i18n)
+├── services/      # Service classes and utilities
+├── types/         # TypeScript type definitions
+└── utils/         # Utility functions
+```
+
+## Exports
+
+The package uses path-based exports to allow fine-grained imports:
+
+```typescript
+// Import specific modules
+import { useColorMode } from '@workspace/core/hooks/use-color-mode'
+import { logger } from '@workspace/core/utils/logger'
+import { Http } from '@workspace/core/services/http'
+```
+
+### APIs
+
+API client instances for external services:
+
+- `@workspace/core/apis/auth` - Authentication API client
+- `@workspace/core/apis/better-auth` - Better Auth integration
+- `@workspace/core/apis/cdn` - CDN API client
+- `@workspace/core/apis/core` - Core API utilities
+
+### Hooks
+
+React hooks for common functionality:
+
+<AccordionGroup>
+  <Accordion title="State Management Hooks">
+    - `use-controllable-value` - Manage controlled/uncontrolled component state
+    - `use-reset-state` - State with reset functionality
+    - `use-local-storage-state` - Persist state in localStorage
+    - `use-session-storage-state` - Persist state in sessionStorage
+    - `use-history-travel` - State with undo/redo history
+    - `use-selections` - Manage multi-select state
+  </Accordion>
+
+  <Accordion title="Lifecycle Hooks">
+    - `use-mount` - Execute callback on component mount
+    - `use-update` - Execute callback on component update
+    - `use-update-effect` - useEffect that skips initial mount
+    - `use-update-layout-effect` - useLayoutEffect that skips initial mount
+  </Accordion>
+
+  <Accordion title="Timing Hooks">
+    - `use-interval` - setInterval with React lifecycle integration
+    - `use-timeout` - setTimeout with React lifecycle integration
+    - `use-raf-interval` - requestAnimationFrame-based interval
+    - `use-raf-timeout` - requestAnimationFrame-based timeout
+  </Accordion>
+
+  <Accordion title="Utility Hooks">
+    - `use-copy-to-clipboard` - Copy text to clipboard
+    - `use-color-mode` - Manage light/dark theme
+    - `use-media-query` - Respond to media query changes
+    - `use-auto-scroll` - Auto-scroll functionality
+    - `use-dynamic-list` - Dynamic list management
+    - `use-latest` - Always get the latest value
+    - `use-memoized-fn` - Memoize function references
+    - `use-multiple-refs` - Combine multiple refs
+  </Accordion>
+</AccordionGroup>
+
+### Services
+
+Service classes for common functionality:
+
+#### HTTP Service
+
+A wrapper around the `ky` HTTP client:
+
+```typescript
+import { Http } from '@workspace/core/services/http'
+
+const httpClient = new Http({
+  prefixUrl: 'https://api.example.com',
+  timeout: 10000,
+})
+
+// Make requests
+const data = await httpClient.instance.get('users').json()
+
+// Update configuration
+httpClient.updateConfig({ timeout: 20000 })
+```
+
+### Utils
+
+Utility functions organized by category:
+
+- `@workspace/core/utils/core` - Core utility functions
+- `@workspace/core/utils/cookie` - Cookie management utilities
+- `@workspace/core/utils/date` - Date formatting and manipulation
+- `@workspace/core/utils/dom` - DOM manipulation utilities
+- `@workspace/core/utils/invariant` - Invariant assertions
+- `@workspace/core/utils/logger` - Logging utilities
+
+#### Logger
+
+Structured logging with color-coded severity levels:
+
+```typescript
+import { logger } from '@workspace/core/utils/logger'
+
+logger.debug('Debug message', { context: 'details' })
+logger.log('Info message')
+logger.warn('Warning message')
+logger.error('Error message', error)
+```
+
+### Constants
+
+Shared constants and configuration:
+
+- `@workspace/core/constants/core` - Core constants
+- `@workspace/core/constants/date` - Date-related constants
+- `@workspace/core/constants/http` - HTTP status codes and headers
+
+### Types
+
+Shared TypeScript type definitions:
+
+- `@workspace/core/types/core` - Core type definitions
+
+### Libraries
+
+Configured third-party library integrations:
+
+- `@workspace/core/libs/i18n/init` - i18n initialization
+- `@workspace/core/libs/i18n/define-translation` - Translation helpers
+- `@workspace/core/libs/i18n/locales/en-US` - English translations
+- `@workspace/core/libs/i18n/locales/id-ID` - Indonesian translations
+
+### Assets
+
+Shared static assets:
+
+- `@workspace/core/assets/fonts/*` - Lato font family (regular, italic, bold)
+- `@workspace/core/assets/images/*` - Shared images
+
+## Peer Dependencies
+
+The core package requires the following peer dependencies:
+
+<CodeGroup>
+```json package.json
+{
+  "peerDependencies": {
+    "ky": "1.14.3",
+    "radashi": "12.7.1",
+    "react": ">=19.0.0",
+    "type-fest": "5.4.4",
+    "zod": "4.3.6"
+  }
+}
+```
+</CodeGroup>
+
+Make sure these dependencies are installed in your consuming app or package.
+
+## Usage Examples
+
+### Using Hooks
+
+```typescript
+import { useCopyToClipboard } from '@workspace/core/hooks/use-copy-to-clipboard'
+import { useColorMode } from '@workspace/core/hooks/use-color-mode'
+
+function MyComponent() {
+  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
+  const { colorMode, setColorMode } = useColorMode()
+
+  return (
+    <div>
+      <button onClick={() => copyToClipboard('Hello World')}>
+        {isCopied ? 'Copied!' : 'Copy'}
+      </button>
+      <button onClick={() => setColorMode(colorMode === 'light' ? 'dark' : 'light')}>
+        Toggle {colorMode} mode
+      </button>
+    </div>
+  )
+}
+```
+
+### Using Services
+
+```typescript
+import { Http } from '@workspace/core/services/http'
+
+const api = new Http({
+  prefixUrl: process.env.API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+const users = await api.instance.get('users').json()
+```
+
+### Using Utilities
+
+```typescript
+import { logger } from '@workspace/core/utils/logger'
+
+function processData(data: unknown) {
+  logger.log('Processing data', { count: data.length })
+  
+  try {
+    // Process data
+    logger.debug('Processing complete')
+  } catch (error) {
+    logger.error('Processing failed', error)
+  }
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Path Imports" icon="file-import">
+    Always import specific modules using path-based exports instead of importing the entire package.
+  </Card>
+  
+  <Card title="Isomorphic Code" icon="server">
+    The core package is designed to work in both browser and Node.js environments. Avoid platform-specific code.
+  </Card>
+  
+  <Card title="Type Safety" icon="shield-check">
+    Leverage TypeScript types exported from the package for better type safety.
+  </Card>
+  
+  <Card title="Peer Dependencies" icon="puzzle-piece">
+    Ensure all peer dependencies are properly installed in your consuming package.
+  </Card>
+</CardGroup>

@@ -1,0 +1,442 @@
+---
+title: Deployment Guide
+description: Learn how to deploy SPA and Web applications to Vercel, and Expo applications using EAS Build and Submit.
+---
+
+## Overview
+
+The FE Monorepo uses different deployment strategies for each application:
+
+- **SPA & Web**: Vercel for hosting and deployment
+- **Expo**: EAS (Expo Application Services) for building and distributing to app stores
+
+## SPA Deployment (Vercel)
+
+The SPA is built with Vite and deployed to Vercel.
+
+### Building for Production
+
+<Steps>
+  <Step title="Build for Development">
+    Build with development environment:
+    
+    ```bash
+    bun spa build
+    ```
+    
+    This uses `.env.dev` and builds in development mode.
+  </Step>
+  
+  <Step title="Build for Production">
+    Build with production environment:
+    
+    ```bash
+    bun spa build:prod
+    ```
+    
+    This uses `.env.prod` and optimizes for production.
+  </Step>
+  
+  <Step title="Preview Locally">
+    Preview the production build:
+    
+    ```bash
+    bun spa preview
+    ```
+  </Step>
+</Steps>
+
+### Vercel Configuration
+
+<Steps>
+  <Step title="Connect Repository">
+    1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+    2. Click "Add New Project"
+    3. Import your Git repository
+  </Step>
+  
+  <Step title="Configure Build Settings">
+    Set the following in Vercel project settings:
+    
+    - **Framework Preset**: Vite
+    - **Root Directory**: `apps/spa`
+    - **Build Command**: `bun run build:prod`
+    - **Output Directory**: `dist`
+    - **Install Command**: `bun install`
+  </Step>
+  
+  <Step title="Set Environment Variables">
+    Add environment variables from `apps/spa/.env.prod`:
+    
+    1. Go to Settings → Environment Variables
+    2. Add each variable (e.g., `VITE_API_URL`)
+    3. Set the appropriate environment scope (Production, Preview, Development)
+  </Step>
+  
+  <Step title="Deploy">
+    Push to your Git repository's main branch to trigger a deployment.
+  </Step>
+</Steps>
+
+<Info>
+  Vercel automatically deploys previews for pull requests and production builds for the main branch.
+</Info>
+
+## Web Deployment (Vercel)
+
+The Web app is a Next.js 16 application deployed to Vercel.
+
+### Building for Production
+
+<Steps>
+  <Step title="Build for Development">
+    Build with development environment:
+    
+    ```bash
+    bun web build
+    ```
+  </Step>
+  
+  <Step title="Build for Production">
+    Build with production environment:
+    
+    ```bash
+    bun web build:prod
+    ```
+  </Step>
+  
+  <Step title="Preview Locally">
+    Start the production server:
+    
+    ```bash
+    bun web start
+    ```
+  </Step>
+</Steps>
+
+### Vercel Configuration
+
+<Steps>
+  <Step title="Connect Repository">
+    1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+    2. Click "Add New Project"
+    3. Import your Git repository
+  </Step>
+  
+  <Step title="Configure Build Settings">
+    Set the following in Vercel project settings:
+    
+    - **Framework Preset**: Next.js
+    - **Root Directory**: `apps/web`
+    - **Build Command**: `bun run build:prod`
+    - **Output Directory**: `.next`
+    - **Install Command**: `bun install`
+  </Step>
+  
+  <Step title="Set Environment Variables">
+    Add environment variables from `apps/web/.env.prod`:
+    
+    1. Go to Settings → Environment Variables
+    2. Add database URL, auth secrets, and public variables
+    3. Ensure `BETTER_AUTH_URL` points to your production domain
+  </Step>
+  
+  <Step title="Configure Database">
+    Set up PostgreSQL database:
+    
+    1. Use Vercel Postgres or external provider
+    2. Add `DATABASE_URL` to environment variables
+    3. Run migrations if needed
+  </Step>
+  
+  <Step title="Deploy">
+    Push to your Git repository to trigger deployment.
+  </Step>
+</Steps>
+
+<Warning>
+  Ensure your production database is properly configured and accessible from Vercel's network.
+</Warning>
+
+### Bundle Analysis
+
+Analyze the production bundle size:
+
+```bash
+bun web analyze-bundle-size
+```
+
+This builds the app with bundle analysis enabled.
+
+## Expo Deployment (EAS)
+
+Expo uses EAS for building and distributing apps to Google Play Store and Apple App Store.
+
+### Prerequisites
+
+<Steps>
+  <Step title="Install EAS CLI">
+    ```bash
+    npm i -g eas-cli
+    ```
+  </Step>
+  
+  <Step title="Login to EAS">
+    ```bash
+    eas login
+    ```
+  </Step>
+  
+  <Step title="Initialize EAS Project">
+    If not already done:
+    
+    ```bash
+    eas init
+    ```
+  </Step>
+  
+  <Step title="Set Up Environments">
+    Configure environment variables in the EAS dashboard for each environment (development, preview, production).
+  </Step>
+</Steps>
+
+### Build Profiles
+
+The monorepo includes three build profiles in `eas.json`:
+
+1. **Development**: For development builds with dev client
+2. **Preview**: For internal distribution (TestFlight, Google Play Beta)
+3. **Production**: For app store submission
+
+### Development Builds
+
+Development builds include the Expo Dev Client for rapid development:
+
+<CodeGroup>
+```bash Android (EAS Cloud)
+bun expo build:android:dev
+```
+
+```bash Android (Local)
+bun expo build:android:dev:local
+```
+
+```bash iOS Device (EAS Cloud)
+bun expo build:ios:dev
+```
+
+```bash iOS Simulator (Local)
+bun expo build:ios:dev-sim:local
+```
+</CodeGroup>
+
+<Info>
+  Local builds create `.apk` files for Android and `.tar.gz` files for iOS in the project root.
+</Info>
+
+### Preview Builds
+
+Preview builds are for internal distribution via TestFlight (iOS) and Google Play Beta (Android):
+
+<CodeGroup>
+```bash Android (EAS Cloud)
+bun expo build:android:preview
+```
+
+```bash Android (Local)
+bun expo build:android:preview:local
+```
+
+```bash iOS (EAS Cloud)
+bun expo build:ios:preview
+```
+
+```bash iOS (Local)
+bun expo build:ios:preview:local
+```
+</CodeGroup>
+
+<Note>
+  Preview builds require an Apple Developer Account ($99/year) for iOS.
+</Note>
+
+### Production Builds
+
+Production builds are optimized for app store submission:
+
+<CodeGroup>
+```bash Android (EAS Cloud)
+bun expo build:android:prod
+```
+
+```bash Android (Local)
+bun expo build:android:prod:local
+```
+
+```bash iOS (EAS Cloud)
+bun expo build:ios:prod
+```
+
+```bash iOS (Local)
+bun expo build:ios:prod:local
+```
+</CodeGroup>
+
+<Warning>
+  - Android production builds create `.aab` files (Android App Bundle) that can only be distributed through Google Play Store
+  - iOS production builds create `.ipa` files that can only be distributed through App Store Connect
+  - Neither can be installed directly on devices/simulators
+</Warning>
+
+### OTA Updates
+
+Send over-the-air updates for non-native changes (JS, styling, images):
+
+<CodeGroup>
+```bash Preview Environment
+bun expo update:preview
+```
+
+```bash Production Environment
+bun expo update:prod
+```
+</CodeGroup>
+
+<Info>
+  OTA updates only work for JavaScript changes. Native code changes require a new build.
+</Info>
+
+### App Store Submission
+
+<Steps>
+  <Step title="Google Play Store Setup">
+    Requirements:
+    - Google Play Developer Account
+    - Google Service Account key
+    - Production build (`.aab`)
+  </Step>
+  
+  <Step title="Apple App Store Setup">
+    Requirements:
+    - Apple Developer Account ($99/year)
+    - Production build (`.ipa`)
+    - App Store Connect configured
+  </Step>
+  
+  <Step title="Submit Apps">
+    <CodeGroup>
+    ```bash Android
+    bun expo submit:android
+    ```
+    
+    ```bash iOS
+    bun expo submit:ios
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+<Note>
+  Follow [best practices for app store submission](https://docs.expo.dev/distribution/app-stores/) including screenshots, descriptions, and privacy policies.
+</Note>
+
+### Bundle Size Optimization
+
+Analyze the JavaScript bundle size:
+
+```bash
+bun expo analyze
+```
+
+This starts the dev server with Expo Atlas. Press `Shift+M` and open Expo Atlas to view the bundle analysis.
+
+## CI/CD Integration
+
+### GitHub Actions
+
+The monorepo includes CI workflows for building and testing:
+
+```yaml .github/workflows/ci.yml
+- name: Build SPA
+  run: bun spa:ci build
+  
+- name: Build Web
+  run: bun web:ci build
+```
+
+### EAS Workflows
+
+EAS supports automated workflows for Expo apps. Run manually:
+
+```bash
+eas workflow:run .eas/workflows/create-development-builds.yaml --non-interactive
+```
+
+<Info>
+  Connect your EAS project to GitHub repository to trigger workflows automatically on push/PR events.
+</Info>
+
+## Environment-Specific Deployments
+
+### Development Environment
+
+- **SPA/Web**: Deploy to Vercel preview URL
+- **Expo**: Development builds with EAS
+- **Purpose**: Testing new features
+
+### Preview/Staging Environment
+
+- **SPA/Web**: Vercel preview deployments from PRs
+- **Expo**: Preview builds distributed via TestFlight/Google Play Beta
+- **Purpose**: Internal testing and QA
+
+### Production Environment
+
+- **SPA/Web**: Vercel production deployment from main branch
+- **Expo**: Production builds submitted to app stores
+- **Purpose**: Public release
+
+## Troubleshooting
+
+### Vercel Deployment Issues
+
+**Build fails:**
+1. Check build logs in Vercel dashboard
+2. Verify environment variables are set correctly
+3. Test build locally: `bun run build:prod`
+
+**App doesn't work in production:**
+1. Check browser console for errors
+2. Verify API endpoints are accessible
+3. Ensure environment variables use production values
+
+### EAS Build Issues
+
+**Build fails on EAS:**
+1. Check EAS build logs
+2. Verify `eas.json` configuration
+3. Test local build first
+
+**iOS build requires credentials:**
+1. Ensure Apple Developer Account is connected
+2. Run `eas credentials` to manage certificates
+
+**Can't install production builds:**
+1. Production builds (`.aab`, `.ipa`) can only be installed through app stores
+2. Use preview builds for local testing
+
+## Quick Reference
+
+| App | Platform | Build Command | Deploy Target |
+|-----|----------|--------------|---------------|
+| SPA | Web | `bun spa build:prod` | Vercel |
+| Web | Web | `bun web build:prod` | Vercel |
+| Expo | Android | `bun expo build:android:prod` | Google Play Store |
+| Expo | iOS | `bun expo build:ios:prod` | Apple App Store |
+
+### Deployment URLs
+
+- **Vercel Dashboard**: https://vercel.com/dashboard
+- **EAS Dashboard**: https://expo.dev/
+- **Google Play Console**: https://play.google.com/console
+- **App Store Connect**: https://appstoreconnect.apple.com/

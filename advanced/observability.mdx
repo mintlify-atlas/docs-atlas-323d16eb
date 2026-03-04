@@ -1,0 +1,379 @@
+---
+title: Observability
+description: OpenTelemetry setup with Grafana for comprehensive application monitoring
+---
+
+This monorepo implements full observability using OpenTelemetry, Grafana, and the LGTM stack (Loki, Grafana, Tempo, Mimir) for metrics, traces, and logs.
+
+## OpenTelemetry Architecture
+
+The observability stack is built on OpenTelemetry standards and includes:
+
+- **Traces**: Distributed tracing across services
+- **Metrics**: Application and runtime metrics collection
+- **Logs**: Structured logging with context
+
+### Backend Applications (@workspace/web)
+
+The Next.js application uses server-side instrumentation for comprehensive observability:
+
+```typescript
+// apps/web/src/instrumentation.ts
+import { registerOTel } from '@vercel/otel'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+
+registerOTel({
+  serviceName: SERVICE_NAME,
+  traceExporter: new OTLPHttpJsonTraceExporter(),
+  metricReaders: [
+    new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter(),
+    }),
+  ],
+  logRecordProcessors: [new BatchLogRecordProcessor(new OTLPLogExporter())],
+  instrumentations: [
+    new DnsInstrumentation(),
+    new HttpInstrumentation(),
+    new NetInstrumentation(),
+    new PgInstrumentation(),
+    new RuntimeNodeInstrumentation(),
+    new UndiciInstrumentation(),
+  ],
+})
+```
+
+#### Automatic Instrumentation
+
+The following are automatically instrumented:
+
+- **DNS queries** - Track DNS resolution performance
+- **HTTP requests** - Monitor outgoing HTTP calls with filtering
+- **Network operations** - Low-level network monitoring
+- **PostgreSQL queries** - Database query performance and tracing
+- **Runtime metrics** - Node.js runtime statistics
+- **Undici/fetch** - Modern HTTP client instrumentation
+
+#### HTTP Request Filtering
+
+To reduce noise, certain requests are excluded from tracing:
+
+```typescript
+ignoreIncomingRequestHook: (request) => {
+  const patterns = [
+    /^\/openapi(?:\/.*)?$/,      // OpenAPI routes
+    /^\/_next\/static\/.*/,       // Static assets
+    /^\/__nextjs_source-map\//,  // Source maps
+    /^\/\.well-known\/.*/,        // Well-known URIs
+    /\.(?:png|jpg|jpeg|gif|svg|ico|webp)$/i, // Images
+  ]
+  return patterns.some(pattern => pattern.test(request.url))
+}
+```
+
+### Frontend Applications (@workspace/spa)
+
+The React SPA uses browser-compatible OpenTelemetry instrumentation:
+
+<Warning>
+  **Note**: OpenTelemetry in web browsers does not support logs. Use the telemetry utilities for traces and metrics only. For console logging, use the logger from `@workspace/core`.
+</Warning>
+
+```typescript
+// apps/spa/docs/observability.md
+import { getTracer, recordSpan } from '@/core/utils/telemetry'
+
+const tracer = getTracer({ isEnabled: true })
+
+return recordSpan({
+  name: 'my-operation',
+  tracer,
+  attributes: { userId: '123' },
+  fn: async (span) => {
+    // Your code here
+    return result
+  },
+})
+```
+
+## Grafana Dashboard
+
+The local development environment includes a fully configured Grafana LGTM stack via Docker.
+
+### Starting Grafana
+
+Run the Grafana LGTM container from the Docker Compose configuration:
+
+```bash
+docker compose -f docker/docker-compose.yml up otel-lgtm
+```
+
+### Configuration
+
+The `otel-lgtm` service includes:
+
+- **Prometheus** - Metrics database
+- **Tempo** - Traces database
+- **Loki** - Logs database
+- **Pyroscope** - Profiling database
+- **Grafana** - Visualization dashboard
+
+```yaml
+# docker/docker-compose.yml
+otel-lgtm:
+  image: docker.io/grafana/otel-lgtm:latest
+  ports:
+    - "3111:3000"  # Grafana UI
+    - "4317:4317"  # OTLP gRPC receiver
+    - "4318:4318"  # OTLP HTTP receiver
+  volumes:
+    - ./otel-lgtm/grafana:/data/grafana
+    - ./otel-lgtm/prometheus:/data/prometheus
+    - ./otel-lgtm/loki:/data/loki
+```
+
+### Accessing Grafana
+
+Once the container is running:
+
+1. Navigate to `http://localhost:3111`
+2. Login with default credentials:
+   - **Username**: `admin`
+   - **Password**: `admin`
+
+### Data Sources
+
+Grafana comes pre-configured with the following data sources:
+
+<CardGroup cols={2}>
+  <Card title="Prometheus" icon="chart-line">
+    Query metrics and create custom dashboards for application performance
+  </Card>
+  <Card title="Tempo" icon="timeline">
+    Explore distributed traces to debug latency and errors
+  </Card>
+  <Card title="Loki" icon="file-lines">
+    Search and filter structured logs from your applications
+  </Card>
+  <Card title="Pyroscope" icon="fire">
+    Analyze continuous profiling data for performance optimization
+  </Card>
+</CardGroup>
+
+## Logging
+
+### Server-Side Logging (@workspace/web)
+
+Use the structured Logger class for server-side logging with OpenTelemetry integration:
+
+```typescript
+import { Logger } from '@/core/utils/logger'
+
+const logger = new Logger('my-context')
+
+logger.log('User logged in', { userId: '123' })
+logger.warn('Rate limit approaching', { current: 95, limit: 100 })
+logger.error('Payment failed', { orderId: 'ord_123', error: err })
+```
+
+The Logger automatically:
+- Emits structured logs to OpenTelemetry
+- Includes context and custom attributes
+- Provides colored console output for development
+- Batches logs for efficient transport
+
+### Client-Side Logging
+
+For browser environments, use the logger from `@workspace/core` as OpenTelemetry logs are not supported:
+
+```typescript
+import { logger } from '@workspace/core/utils/logger'
+
+logger.log('User action completed')
+```
+
+## Tracing
+
+Tracing helps you understand the flow of requests through your application.
+
+### Recording Spans
+
+Wrap asynchronous operations with spans:
+
+```typescript
+import { trace } from '@opentelemetry/api'
+import { recordSpan } from '@/core/utils/telemetry'
+
+const tracer = trace.getTracer('my-service')
+
+await recordSpan({
+  name: 'process-payment',
+  tracer,
+  attributes: {
+    amount: 99.99,
+    currency: 'USD',
+    customerId: 'cus_123',
+  },
+  fn: async (span) => {
+    // Your business logic
+    const result = await processPayment()
+    
+    // Add dynamic attributes
+    span.setAttribute('paymentId', result.id)
+    
+    return result
+  },
+})
+```
+
+### Recording Exceptions
+
+Capture exceptions with full context:
+
+```typescript
+import { recordException } from '@/core/utils/telemetry'
+
+try {
+  await riskyOperation()
+} catch (error) {
+  recordException({
+    name: 'risky-operation-failed',
+    error,
+    tracer,
+  })
+  throw error
+}
+```
+
+## Metrics
+
+### Server-Side Metrics
+
+Create custom metrics using the OpenTelemetry Metrics API:
+
+```typescript
+import { metrics } from '@opentelemetry/api'
+
+const meter = metrics.getMeter('my-service')
+
+const requestCounter = meter.createCounter('http_requests_total', {
+  description: 'Total HTTP requests',
+})
+
+const latencyHistogram = meter.createHistogram('http_request_duration_ms', {
+  description: 'HTTP request latency',
+  unit: 'ms',
+})
+
+requestCounter.add(1, { method: 'GET', status: 200 })
+latencyHistogram.record(145, { route: '/api/users' })
+```
+
+### Web Vitals Metrics
+
+Both applications track Core Web Vitals automatically:
+
+**@workspace/web** (Next.js):
+```typescript
+// Automatically tracked via WebVitals component
+import { WebVitals } from '@/core/providers/web-vitals.client'
+
+export function Providers({ children }) {
+  return (
+    <>
+      <WebVitals />
+      {children}
+    </>
+  )
+}
+```
+
+**@workspace/spa** (React):
+```typescript
+import { reportWebVitals } from '@/core/utils/web-vitals'
+
+function MyPage() {
+  useEffect(() => {
+    reportWebVitals() // Tracks LCP, INP, CLS, FCP, TTFB
+  }, [])
+}
+```
+
+See [Performance](/advanced/performance) for more details on Web Vitals.
+
+## Environment Variables
+
+Configure OpenTelemetry behavior via environment variables:
+
+```bash
+# OTLP endpoint for traces, metrics, and logs
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+
+# Log level for OpenTelemetry SDK
+OTEL_LOG_LEVEL=info
+NEXT_PUBLIC_OTEL_LOG_LEVEL=info
+
+# Service name
+SERVICE_NAME=@workspace/web
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use meaningful span names">
+    Use descriptive, consistent naming for spans:
+    - ✅ `user.authenticate`
+    - ✅ `payment.process`
+    - ❌ `function1`
+    - ❌ `doStuff`
+  </Accordion>
+  
+  <Accordion title="Add relevant attributes">
+    Include context that helps debugging:
+    ```typescript
+    span.setAttributes({
+      'user.id': userId,
+      'order.total': orderTotal,
+      'feature.flag': isEnabled,
+    })
+    ```
+  </Accordion>
+  
+  <Accordion title="Filter noisy requests">
+    Exclude health checks, static assets, and monitoring endpoints to reduce overhead and storage costs.
+  </Accordion>
+  
+  <Accordion title="Use structured logging">
+    Always pass structured data as the second argument to logger methods instead of string interpolation:
+    ```typescript
+    // ✅ Good
+    logger.log('User created', { userId, email })
+    
+    // ❌ Bad
+    logger.log(`User ${userId} created with email ${email}`)
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Grafana LGTM Docker" icon="docker" href="https://github.com/grafana/docker-otel-lgtm">
+    Official Grafana LGTM Docker image repository
+  </Card>
+  <Card title="Grafana Prometheus" icon="chart-line" href="https://grafana.com/docs/grafana/latest/datasources/prometheus/">
+    Configure and query Prometheus data sources
+  </Card>
+  <Card title="Grafana Tempo" icon="timeline" href="https://grafana.com/docs/grafana/latest/datasources/tempo/">
+    Explore distributed traces with Tempo
+  </Card>
+  <Card title="Grafana Loki" icon="file-lines" href="https://grafana.com/docs/grafana/latest/datasources/loki/">
+    Query logs with LogQL in Loki
+  </Card>
+  <Card title="OpenTelemetry Docs" icon="book" href="https://opentelemetry.io/docs/">
+    Official OpenTelemetry documentation
+  </Card>
+  <Card title="@vercel/otel" icon="bolt" href="https://www.npmjs.com/package/@vercel/otel">
+    Vercel's OpenTelemetry integration for Next.js
+  </Card>
+</CardGroup>

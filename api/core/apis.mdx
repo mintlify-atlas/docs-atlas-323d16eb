@@ -1,0 +1,411 @@
+---
+title: API Clients
+description: HTTP API clients for authentication, CDN access, and core services
+---
+
+# API Clients
+
+The core package provides type-safe API clients built on top of the `ky` HTTP library with Zod schema validation.
+
+## Authentication (Legacy)
+
+### authRepositories
+
+Legacy authentication client for token-based authentication.
+
+**Location**: `@workspace/core/apis/auth`
+
+```typescript
+import { Http } from '@workspace/core/services/http'
+import { authRepositories } from '@workspace/core/apis/auth'
+
+const http = new Http({ baseUrl: process.env.API_BASE_URL })
+const auth = authRepositories(http)
+```
+
+#### login
+
+Authenticate user with username and password.
+
+```typescript
+const result = await auth.login({
+  json: {
+    username: 'johndoe',
+    password: 'password123',
+    expiresInMins: 60, // optional
+  },
+})
+```
+
+<ParamField path="json.username" type="string" required>
+  Username (minimum 3 characters)
+</ParamField>
+
+<ParamField path="json.password" type="string" required>
+  Password (minimum 6 characters)
+</ParamField>
+
+<ParamField path="json.expiresInMins" type="number">
+  Token expiration time in minutes
+</ParamField>
+
+<ResponseField name="id" type="number">
+  User ID
+</ResponseField>
+
+<ResponseField name="username" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User email address
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  User's first name
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  User's last name
+</ResponseField>
+
+<ResponseField name="gender" type="'male' | 'female'">
+  User's gender
+</ResponseField>
+
+<ResponseField name="image" type="string">
+  URL to user's profile image
+</ResponseField>
+
+<ResponseField name="accessToken" type="string">
+  JWT access token
+</ResponseField>
+
+<ResponseField name="refreshToken" type="string">
+  JWT refresh token
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`, `ZodError`
+
+**URL**: `POST ${env.apiBaseUrl}/auth/login`
+
+---
+
+## Better Auth
+
+### authRepositories
+
+Modern authentication client using Better Auth library with session-based authentication.
+
+**Location**: `@workspace/core/apis/better-auth`
+
+```typescript
+import { Http } from '@workspace/core/services/http'
+import { authRepositories } from '@workspace/core/apis/better-auth'
+
+const http = new Http({ baseUrl: process.env.API_BASE_URL })
+const auth = authRepositories(http)
+```
+
+#### getSession
+
+Retrieve the current user session.
+
+```typescript
+const { headers, json } = await auth.getSession()
+
+if (json) {
+  console.log('User:', json.user.email)
+  console.log('Session expires:', json.session.expiresAt)
+}
+```
+
+<ResponseField name="session" type="AuthSessionSchema | null">
+  Session information
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Session ID
+    </ResponseField>
+    <ResponseField name="expiresAt" type="string">
+      ISO date when session expires
+    </ResponseField>
+    <ResponseField name="token" type="string">
+      Session token
+    </ResponseField>
+    <ResponseField name="createdAt" type="string">
+      ISO date when session was created
+    </ResponseField>
+    <ResponseField name="updatedAt" type="string">
+      ISO date when session was last updated
+    </ResponseField>
+    <ResponseField name="ipAddress" type="string">
+      IP address of the session
+    </ResponseField>
+    <ResponseField name="userAgent" type="string">
+      User agent string
+    </ResponseField>
+    <ResponseField name="userId" type="string">
+      Associated user ID
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="user" type="AuthUserSchema | null">
+  User information
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      User ID
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      User's full name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+    <ResponseField name="emailVerified" type="boolean">
+      Whether email is verified
+    </ResponseField>
+    <ResponseField name="image" type="string | null">
+      URL to user's profile image
+    </ResponseField>
+    <ResponseField name="createdAt" type="string">
+      ISO date when user was created
+    </ResponseField>
+    <ResponseField name="updatedAt" type="string">
+      ISO date when user was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`, `ZodError`
+
+**URL**: `GET ${env.apiBaseUrl}/api/auth/get-session`
+
+#### signInEmail
+
+Sign in user with email and password.
+
+```typescript
+const { headers, json } = await auth.signInEmail({
+  json: {
+    email: 'user@example.com',
+    password: 'securepassword',
+    rememberMe: true,
+    callbackURL: '/dashboard',
+  },
+})
+```
+
+<ParamField path="json.email" type="string" required>
+  User's email address
+</ParamField>
+
+<ParamField path="json.password" type="string" required>
+  User's password (minimum 8 characters)
+</ParamField>
+
+<ParamField path="json.rememberMe" type="boolean">
+  Whether to create a persistent session
+</ParamField>
+
+<ParamField path="json.callbackURL" type="string">
+  URL to redirect after successful sign in
+</ParamField>
+
+<ResponseField name="redirect" type="boolean">
+  Whether to perform a redirect
+</ResponseField>
+
+<ResponseField name="token" type="string">
+  Authentication token
+</ResponseField>
+
+<ResponseField name="url" type="string | null">
+  Redirect URL
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`, `ZodError`
+
+**URL**: `POST ${env.apiBaseUrl}/api/auth/sign-in/email`
+
+#### signUpEmail
+
+Register a new user with email and password.
+
+```typescript
+const { headers, json } = await auth.signUpEmail({
+  json: {
+    email: 'newuser@example.com',
+    password: 'securepassword',
+    name: 'John Doe',
+    callbackURL: '/welcome',
+  },
+})
+```
+
+<ParamField path="json.email" type="string" required>
+  User's email address
+</ParamField>
+
+<ParamField path="json.password" type="string" required>
+  User's password (minimum 8 characters)
+</ParamField>
+
+<ParamField path="json.name" type="string" required>
+  User's full name (minimum 3 characters)
+</ParamField>
+
+<ParamField path="json.callbackURL" type="string">
+  URL to redirect after successful registration
+</ParamField>
+
+<ResponseField name="token" type="string | null">
+  Verification token (if email verification is enabled)
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`, `ZodError`
+
+**URL**: `POST ${env.apiBaseUrl}/api/auth/sign-up/email`
+
+#### signOut
+
+Sign out the current user.
+
+```typescript
+const { headers, json } = await auth.signOut()
+
+if (json.success) {
+  // Redirect to login page
+}
+```
+
+<ResponseField name="success" type="boolean">
+  Whether sign out was successful
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`, `ZodError`
+
+**URL**: `POST ${env.apiBaseUrl}/api/auth/sign-out`
+
+---
+
+## CDN
+
+### cdnRepositories
+
+Client for fetching files from CDN or external URLs.
+
+**Location**: `@workspace/core/apis/cdn`
+
+```typescript
+import { cdnRepositories } from '@workspace/core/apis/cdn'
+
+const cdn = cdnRepositories()
+```
+
+#### getCdnFile
+
+Fetch a file from a CDN URL.
+
+```typescript
+const { response, blob, headers } = await cdn.getCdnFile({
+  url: 'https://cdn.example.com/images/photo.jpg',
+})
+
+// Create object URL for display
+const objectUrl = URL.createObjectURL(blob)
+```
+
+<ParamField path="url" type="string" required>
+  Full URL to the CDN file
+</ParamField>
+
+<ParamField path="options" type="Options">
+  Optional Ky request options (timeout, headers, etc.)
+</ParamField>
+
+<ResponseField name="response" type="KyResponse">
+  The full Ky response object
+</ResponseField>
+
+<ResponseField name="blob" type="Blob">
+  File contents as a Blob
+</ResponseField>
+
+<ResponseField name="headers" type="Record<string, string>">
+  Response headers as key-value object
+</ResponseField>
+
+**Throws**: `HTTPError`, `TimeoutError`
+
+**URL**: `GET ${url}`
+
+---
+
+## Core API Schemas
+
+### Common Schemas
+
+Shared schemas used across API clients.
+
+**Location**: `@workspace/core/apis/core`
+
+#### ErrorResponseSchema
+
+Standard error response format.
+
+```typescript
+import type { ErrorResponseSchema } from '@workspace/core/apis/core'
+
+interface ErrorResponseSchema {
+  message: string
+}
+```
+
+#### ResourceListRequestSchema
+
+Pagination and filtering parameters for list endpoints.
+
+```typescript
+import type { ResourceListRequestSchema } from '@workspace/core/apis/core'
+
+interface ResourceListRequestSchema {
+  limit?: number    // 1-100, limit per page
+  skip?: number     // Skip first n items
+  select?: string   // Comma-separated field names
+  delay?: number    // Artificial delay in ms (for testing)
+}
+```
+
+#### ResourceListResponseSchema
+
+Standard pagination metadata in list responses.
+
+```typescript
+import type { ResourceListResponseSchema } from '@workspace/core/apis/core'
+
+interface ResourceListResponseSchema {
+  total: number   // Total number of items
+  skip: number    // Number of items skipped
+  limit: number   // Items per page
+}
+```
+
+## Query Keys
+
+All API clients export query key factories for use with React Query:
+
+```typescript
+import { authKeys } from '@workspace/core/apis/better-auth'
+import { cdnKeys } from '@workspace/core/apis/cdn'
+
+// Generate query keys
+const sessionKey = authKeys.all()  // ['auth']
+const signInKey = authKeys.signInEmail({ email: 'user@example.com' })
+// ['auth', 'signInEmail', { email: 'user@example.com' }]
+
+const cdnKey = cdnKeys.getArticleCoverImage('https://...')
+// ['cdn', 'article', 'https://...']
+```

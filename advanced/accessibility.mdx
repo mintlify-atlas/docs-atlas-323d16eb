@@ -1,0 +1,588 @@
+---
+title: Accessibility Guidelines
+description: WCAG compliance, testing, and best practices for inclusive web applications
+---
+
+Accessibility ensures that your applications are usable by everyone, including people with disabilities. This guide covers accessibility standards and implementation in the FE Monorepo.
+
+## Accessibility Standards
+
+Both applications follow:
+
+- **WCAG 2.2** - Web Content Accessibility Guidelines
+- **ARIA** - Accessible Rich Internet Applications
+- **React Aria** - Adobe's accessibility-first component library
+
+## React Aria Components
+
+The monorepo uses React Aria Components, which provide built-in accessibility features:
+
+```tsx
+import { Button, TextField, Dialog } from 'react-aria-components'
+
+function LoginForm() {
+  return (
+    <form>
+      <TextField>
+        <Label>Email</Label>
+        <Input type="email" />
+        <FieldError />
+      </TextField>
+      
+      <Button type="submit">Sign In</Button>
+    </form>
+  )
+}
+```
+
+React Aria automatically handles:
+- Keyboard navigation
+- Screen reader support
+- Focus management
+- ARIA attributes
+- Touch/pointer interactions
+
+## WCAG 2.2 Compliance
+
+### Level A (Minimum)
+
+<AccordionGroup>
+  <Accordion title="1.1.1 Non-text Content">
+    Provide text alternatives for images:
+    
+    ```tsx
+    // ✅ Good
+    <img src="logo.png" alt="Company Logo" />
+    
+    // ✅ Decorative images
+    <img src="decoration.png" alt="" />
+    
+    // ❌ Bad
+    <img src="logo.png" />
+    ```
+  </Accordion>
+  
+  <Accordion title="2.1.1 Keyboard Accessible">
+    All functionality must be keyboard accessible:
+    
+    ```tsx
+    // ✅ Good - uses button
+    <Button onPress={handleClick}>Click Me</Button>
+    
+    // ❌ Bad - div not keyboard accessible
+    <div onClick={handleClick}>Click Me</div>
+    ```
+  </Accordion>
+  
+  <Accordion title="3.1.1 Language of Page">
+    Specify the page language:
+    
+    ```html
+    <html lang="en">
+      <!-- content -->
+    </html>
+    ```
+  </Accordion>
+  
+  <Accordion title="4.1.2 Name, Role, Value">
+    Use semantic HTML and proper ARIA:
+    
+    ```tsx
+    // ✅ Good - semantic HTML
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+      </ul>
+    </nav>
+    
+    // ❌ Bad - no semantic meaning
+    <div>
+      <div onClick={goHome}>Home</div>
+    </div>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Level AA (Recommended)
+
+<AccordionGroup>
+  <Accordion title="1.4.3 Contrast (Minimum)">
+    Ensure sufficient color contrast:
+    - Normal text: 4.5:1 ratio
+    - Large text (18pt+): 3:1 ratio
+    
+    ```css
+    /* ✅ Good - high contrast */
+    .text {
+      color: #000000; /* black */
+      background: #ffffff; /* white */
+      /* Contrast ratio: 21:1 */
+    }
+    
+    /* ❌ Bad - low contrast */
+    .text {
+      color: #cccccc; /* light gray */
+      background: #ffffff; /* white */
+      /* Contrast ratio: 1.6:1 */
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="2.4.7 Focus Visible">
+    Ensure keyboard focus is visible:
+    
+    ```css
+    /* ✅ Good - visible focus */
+    button:focus-visible {
+      outline: 2px solid #0066cc;
+      outline-offset: 2px;
+    }
+    
+    /* ❌ Bad - removing focus */
+    button:focus {
+      outline: none;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="3.2.4 Consistent Navigation">
+    Keep navigation consistent across pages:
+    - Same order
+    - Same styling
+    - Same behavior
+  </Accordion>
+</AccordionGroup>
+
+## Semantic HTML
+
+Use proper HTML elements for their intended purpose:
+
+```tsx
+function Page() {
+  return (
+    <>
+      <header>
+        <nav>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </nav>
+      </header>
+      
+      <main>
+        <article>
+          <h1>Page Title</h1>
+          <p>Content goes here</p>
+        </article>
+        
+        <aside>
+          <h2>Related Links</h2>
+          <ul>
+            <li><a href="/related">Related Article</a></li>
+          </ul>
+        </aside>
+      </main>
+      
+      <footer>
+        <p>&copy; 2024 Company Name</p>
+      </footer>
+    </>
+  )
+}
+```
+
+## ARIA Best Practices
+
+### When to Use ARIA
+
+ARIA should be used when HTML semantics are insufficient:
+
+```tsx
+// ✅ Good - native HTML is better
+<button>Click Me</button>
+
+// ❌ Bad - unnecessary ARIA
+<div role="button" tabIndex={0}>Click Me</div>
+
+// ✅ Good - ARIA needed for complex widget
+<div
+  role="tabpanel"
+  aria-labelledby="tab-1"
+  id="panel-1"
+>
+  Tab content
+</div>
+```
+
+### Common ARIA Patterns
+
+<Tabs>
+  <Tab title="Modals/Dialogs">
+    ```tsx
+    import { Dialog, Modal } from 'react-aria-components'
+    
+    function MyModal({ isOpen, onClose }) {
+      return (
+        <Modal isDismissable isOpen={isOpen}>
+          <Dialog>
+            {({ close }) => (
+              <>
+                <Heading slot="title">Modal Title</Heading>
+                <p>Modal content</p>
+                <Button onPress={close}>Close</Button>
+              </>
+            )}
+          </Dialog>
+        </Modal>
+      )
+    }
+    ```
+    
+    React Aria automatically:
+    - Traps focus within dialog
+    - Returns focus on close
+    - Adds proper ARIA attributes
+    - Handles ESC key
+  </Tab>
+  
+  <Tab title="Tabs">
+    ```tsx
+    import { Tabs, TabList, Tab, TabPanel } from 'react-aria-components'
+    
+    function MyTabs() {
+      return (
+        <Tabs>
+          <TabList>
+            <Tab id="overview">Overview</Tab>
+            <Tab id="details">Details</Tab>
+          </TabList>
+          <TabPanel id="overview">
+            Overview content
+          </TabPanel>
+          <TabPanel id="details">
+            Details content
+          </TabPanel>
+        </Tabs>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Tooltips">
+    ```tsx
+    import { TooltipTrigger, Button, Tooltip } from 'react-aria-components'
+    
+    function MyTooltip() {
+      return (
+        <TooltipTrigger>
+          <Button>Hover me</Button>
+          <Tooltip>
+            Helpful tooltip content
+          </Tooltip>
+        </TooltipTrigger>
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Forms Accessibility
+
+### Labels and Inputs
+
+Always associate labels with inputs:
+
+```tsx
+import { TextField, Label, Input, FieldError } from 'react-aria-components'
+
+function SignupForm() {
+  return (
+    <form>
+      <TextField name="email" type="email" isRequired>
+        <Label>Email Address</Label>
+        <Input />
+        <FieldError />
+      </TextField>
+      
+      <TextField name="password" type="password" isRequired>
+        <Label>Password</Label>
+        <Input />
+        <Text slot="description">
+          Must be at least 8 characters
+        </Text>
+        <FieldError />
+      </TextField>
+    </form>
+  )
+}
+```
+
+### Error Handling
+
+Provide clear, accessible error messages:
+
+```tsx
+function FormField({ error, ...props }) {
+  return (
+    <TextField {...props} validationState={error ? 'invalid' : 'valid'}>
+      <Label>Email</Label>
+      <Input />
+      {error && (
+        <FieldError>
+          {error}
+        </FieldError>
+      )}
+    </TextField>
+  )
+}
+```
+
+## Keyboard Navigation
+
+### Expected Behaviors
+
+<CardGroup cols={2}>
+  <Card title="Tab/Shift+Tab" icon="keyboard">
+    Navigate between focusable elements
+  </Card>
+  <Card title="Enter/Space" icon="keyboard">
+    Activate buttons and links
+  </Card>
+  <Card title="Arrow Keys" icon="keyboard">
+    Navigate within composite widgets (menus, tabs, lists)
+  </Card>
+  <Card title="Escape" icon="keyboard">
+    Close modals, menus, and popovers
+  </Card>
+</CardGroup>
+
+### Focus Management
+
+```tsx
+import { useRef } from 'react'
+import { Button, Dialog, Modal } from 'react-aria-components'
+
+function MyDialog({ isOpen, onClose }) {
+  return (
+    <Modal isDismissable isOpen={isOpen} onOpenChange={onClose}>
+      <Dialog>
+        {({ close }) => (
+          <>
+            <Heading>Confirm Action</Heading>
+            <p>Are you sure you want to continue?</p>
+            <Button onPress={close}>Cancel</Button>
+            <Button onPress={() => { /* action */ }}>Confirm</Button>
+          </>
+        )}
+      </Dialog>
+    </Modal>
+  )
+}
+```
+
+React Aria Components handle focus management automatically.
+
+## Screen Reader Support
+
+### Announcing Dynamic Content
+
+Use live regions for dynamic updates:
+
+```tsx
+function Toast({ message }) {
+  return (
+    <div role="status" aria-live="polite">
+      {message}
+    </div>
+  )
+}
+
+function Alert({ message }) {
+  return (
+    <div role="alert" aria-live="assertive">
+      {message}
+    </div>
+  )
+}
+```
+
+### Visually Hidden Content
+
+Provide context for screen readers:
+
+```tsx
+import { VisuallyHidden } from 'react-aria'
+
+function IconButton() {
+  return (
+    <button>
+      <TrashIcon />
+      <VisuallyHidden>Delete item</VisuallyHidden>
+    </button>
+  )
+}
+```
+
+## Testing for Accessibility
+
+### Automated Testing
+
+Use accessibility testing libraries:
+
+```typescript
+import { render } from '@testing-library/react'
+import { axe, toHaveNoViolations } from 'jest-axe'
+
+expect.extend(toHaveNoViolations)
+
+test('Button is accessible', async () => {
+  const { container } = render(<Button>Click me</Button>)
+  const results = await axe(container)
+  expect(results).toHaveNoViolations()
+})
+```
+
+### Manual Testing
+
+<Steps>
+  <Step title="Keyboard Navigation">
+    - Tab through all interactive elements
+    - Verify focus indicators are visible
+    - Test all keyboard shortcuts
+    - Ensure no keyboard traps
+  </Step>
+  
+  <Step title="Screen Reader Testing">
+    Test with:
+    - NVDA (Windows)
+    - JAWS (Windows)
+    - VoiceOver (macOS/iOS)
+    - TalkBack (Android)
+  </Step>
+  
+  <Step title="Zoom and Magnification">
+    - Test at 200% zoom
+    - Verify content reflows properly
+    - Check for horizontal scrolling
+    - Ensure text remains readable
+  </Step>
+  
+  <Step title="Color and Contrast">
+    - Use browser DevTools contrast checker
+    - Test with grayscale mode
+    - Verify color is not the only indicator
+  </Step>
+</Steps>
+
+### Browser Extensions
+
+<CardGroup cols={2}>
+  <Card title="axe DevTools" icon="bug" href="https://www.deque.com/axe/devtools/">
+    Comprehensive accessibility testing in Chrome DevTools
+  </Card>
+  <Card title="WAVE" icon="wave-square" href="https://wave.webaim.org/extension/">
+    Visual feedback on accessibility issues
+  </Card>
+  <Card title="Lighthouse" icon="lighthouse" href="https://developer.chrome.com/docs/lighthouse">
+    Built-in Chrome accessibility audits
+  </Card>
+  <Card title="Accessibility Insights" icon="eye" href="https://accessibilityinsights.io/">
+    Microsoft's accessibility testing tools
+  </Card>
+</CardGroup>
+
+## Accessibility Checklist
+
+<Steps>
+  <Step title="Semantic HTML">
+    - Use proper heading hierarchy (h1 → h6)
+    - Use semantic elements (nav, main, article, aside)
+    - Use native form controls
+    - Provide skip links for navigation
+  </Step>
+  
+  <Step title="Keyboard Support">
+    - All interactive elements are keyboard accessible
+    - Tab order is logical
+    - Focus indicators are visible
+    - No keyboard traps
+  </Step>
+  
+  <Step title="Visual Design">
+    - Sufficient color contrast (4.5:1 for normal text)
+    - Text is resizable to 200%
+    - No information conveyed by color alone
+    - Focus indicators are clearly visible
+  </Step>
+  
+  <Step title="Screen Readers">
+    - All images have alt text
+    - Forms have proper labels
+    - Dynamic content is announced
+    - Page title is descriptive
+  </Step>
+  
+  <Step title="Testing">
+    - Run automated tests (axe, Lighthouse)
+    - Manual keyboard testing
+    - Screen reader testing
+    - Test at different zoom levels
+  </Step>
+</Steps>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="WCAG 2.2" icon="book" href="https://www.w3.org/TR/WCAG22/">
+    Official Web Content Accessibility Guidelines
+  </Card>
+  <Card title="Learn Accessibility" icon="graduation-cap" href="https://web.dev/learn/accessibility/welcome">
+    Google's comprehensive accessibility course
+  </Card>
+  <Card title="React Aria" icon="react" href="https://react-spectrum.adobe.com/react-aria/">
+    Adobe's accessible component library
+  </Card>
+  <Card title="A11y Project" icon="universal-access" href="https://www.a11yproject.com/">
+    Community-driven accessibility resources
+  </Card>
+  <Card title="WebAIM" icon="eye" href="https://webaim.org/">
+    Web accessibility training and resources
+  </Card>
+  <Card title="Inclusive Components" icon="users" href="https://inclusive-components.design/">
+    Patterns for accessible components
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Design for accessibility from the start">
+    - Include accessibility in design mockups
+    - Consider keyboard navigation in UX flows
+    - Plan for screen reader announcements
+    - Test early and often
+  </Accordion>
+  
+  <Accordion title="Use React Aria Components">
+    Leverage the built-in accessibility features:
+    - Automatic ARIA attributes
+    - Keyboard navigation
+    - Focus management
+    - Screen reader support
+  </Accordion>
+  
+  <Accordion title="Test with real users">
+    - Recruit users with disabilities for testing
+    - Get feedback on actual usage patterns
+    - Understand real-world barriers
+    - Iterate based on user feedback
+  </Accordion>
+  
+  <Accordion title="Document accessibility features">
+    - Note keyboard shortcuts in documentation
+    - Explain screen reader behavior
+    - Provide accessibility statements
+    - Keep documentation up to date
+  </Accordion>
+</AccordionGroup>

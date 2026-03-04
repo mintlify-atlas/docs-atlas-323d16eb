@@ -1,0 +1,608 @@
+---
+title: Architecture
+description: Understanding the monorepo structure, workspace configuration, and how packages are shared across applications
+---
+
+The FE Monorepo is a Bun workspace that houses three production applications and shared packages. This architecture enables code sharing, consistent tooling, and efficient development across web and mobile platforms.
+
+## Monorepo structure
+
+The repository is organized into two main directories:
+
+```
+fe-monorepo/
+├── apps/              # Production applications
+│   ├── spa/          # React 19 SPA with TanStack Router
+│   ├── web/          # Next.js 16 full-stack app
+│   └── expo/         # React Native with Expo 53
+├── packages/          # Shared code
+│   ├── core/         # Business logic, types, hooks
+│   └── typescript-config/  # Shared TypeScript config
+└── package.json       # Workspace configuration
+```
+
+<Info>
+All apps in `apps/*` and packages in `packages/*` are defined as workspaces in the root `package.json`.
+</Info>
+
+## Workspace configuration
+
+The monorepo uses Bun workspaces for dependency management and script execution. The root `package.json` defines the workspace:
+
+```json package.json
+{
+  "name": "fe-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "bun@1.3.10",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
+```
+
+### Running workspace commands
+
+You can run commands for specific apps from the monorepo root using the `--filter` flag:
+
+<CodeGroup>
+
+```bash Run SPA commands
+bun --filter @workspace/spa dev
+bun --filter @workspace/spa build
+bun --filter @workspace/spa typecheck
+```
+
+```bash Run Web commands
+bun --filter @workspace/web dev
+bun --filter @workspace/web build
+bun --filter @workspace/web db:studio
+```
+
+```bash Run Expo commands
+bun --filter @workspace/expo dev
+bun --filter @workspace/expo prebuild
+bun --filter @workspace/expo build:android:dev:local
+```
+
+</CodeGroup>
+
+The root `package.json` provides convenient aliases:
+
+```bash
+# These are equivalent
+bun --filter @workspace/spa dev
+bun spa dev
+
+bun --filter @workspace/web typecheck
+bun web:typecheck
+```
+
+## Applications
+
+Each app is a complete, deployable application with its own build configuration and dependencies.
+
+### @workspace/spa
+
+<CardGroup cols={2}>
+  <Card title="Framework" icon="react">
+    React 19
+  </Card>
+  <Card title="Routing" icon="route">
+    TanStack Router
+  </Card>
+  <Card title="Build Tool" icon="bolt">
+    Vite 7
+  </Card>
+  <Card title="Port" icon="network-wired">
+    3001
+  </Card>
+</CardGroup>
+
+A bulletproof Single Page Application with:
+
+- **React 19** with the new React Compiler
+- **TanStack Router** for type-safe routing
+- **TanStack Query** for data fetching and caching
+- **TanStack Form** for form management
+- **Vite** for fast development and optimized builds
+- **Tailwind CSS 4** for styling
+- **React Aria Components** for accessible UI
+- **PWA support** with Vite PWA plugin
+- **OpenTelemetry** for observability (metrics and traces)
+- **Playwright** for E2E testing
+
+```json apps/spa/package.json
+{
+  "name": "@workspace/spa",
+  "version": "1.1.0",
+  "dependencies": {
+    "@workspace/core": "workspace:*",
+    "react": "19.2.4",
+    "@tanstack/react-router": "1.159.10",
+    "@tanstack/react-query": "5.90.21",
+    "@tanstack/react-form": "1.28.2"
+  }
+}
+```
+
+### @workspace/web
+
+<CardGroup cols={2}>
+  <Card title="Framework" icon="n">
+    Next.js 16
+  </Card>
+  <Card title="Database" icon="database">
+    PostgreSQL + Drizzle ORM
+  </Card>
+  <Card title="Auth" icon="lock">
+    Better Auth
+  </Card>
+  <Card title="Port" icon="network-wired">
+    3002
+  </Card>
+</CardGroup>
+
+A bulletproof full-stack Next.js application with:
+
+- **Next.js 16** with App Router and React Server Components
+- **Better Auth** for authentication
+- **Drizzle ORM** for type-safe database queries
+- **PostgreSQL** database
+- **TanStack Query** for client-side data fetching
+- **React Hook Form** with Zod validation
+- **Next Safe Action** for type-safe server actions
+- **Tailwind CSS 4** for styling
+- **React Aria Components** for accessible UI
+- **OpenTelemetry** for observability (metrics, traces, and logs)
+- **Playwright** for E2E testing
+- **Internationalization** with next-intl
+
+```json apps/web/package.json
+{
+  "name": "@workspace/web",
+  "version": "1.1.0",
+  "dependencies": {
+    "@workspace/core": "workspace:*",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "drizzle-orm": "0.45.1",
+    "better-auth": "1.4.18",
+    "@tanstack/react-query": "5.90.21"
+  }
+}
+```
+
+### @workspace/expo
+
+<CardGroup cols={2}>
+  <Card title="Framework" icon="mobile">
+    React Native + Expo 53
+  </Card>
+  <Card title="Routing" icon="route">
+    Expo Router
+  </Card>
+  <Card title="UI" icon="palette">
+    Tamagui
+  </Card>
+  <Card title="Testing" icon="vial">
+    Maestro
+  </Card>
+</CardGroup>
+
+A bulletproof React Native mobile application with:
+
+- **Expo 53** for managed React Native development
+- **Expo Router** for file-based routing
+- **React Navigation** for navigation primitives
+- **Tamagui** for cross-platform UI components
+- **TanStack Query** for data fetching
+- **React Hook Form** with Zod validation
+- **MMKV** for fast key-value storage
+- **Internationalization** with i18next
+- **Maestro** for E2E testing
+- **EAS Build** for cloud builds
+- **EAS Update** for over-the-air updates
+
+```json apps/expo/package.json
+{
+  "name": "@workspace/expo",
+  "version": "1.1.0",
+  "dependencies": {
+    "@workspace/core": "workspace:*",
+    "expo": "53.0.11",
+    "react": "19.2.4",
+    "react-native": "0.79.3",
+    "expo-router": "5.1.0",
+    "tamagui": "1.126.16",
+    "@tanstack/react-query": "5.90.21"
+  }
+}
+```
+
+## Shared packages
+
+Packages provide reusable code that all apps can consume.
+
+### @workspace/core
+
+The core package contains shared business logic, types, hooks, and utilities that work across both browser and mobile environments.
+
+<Accordion title="Package structure">
+  ```
+  packages/core/
+  ├── src/
+  │   ├── apis/        # API schemas and types
+  │   ├── assets/      # Shared images, fonts
+  │   ├── constants/   # App-wide constants
+  │   ├── hooks/       # React hooks
+  │   ├── libs/        # Utility libraries
+  │   ├── services/    # Business logic
+  │   ├── types/       # TypeScript types
+  │   └── utils/       # Helper functions
+  └── package.json
+  ```
+</Accordion>
+
+The package uses granular exports for tree-shaking:
+
+```json packages/core/package.json
+{
+  "name": "@workspace/core",
+  "version": "1.1.0",
+  "exports": {
+    "./apis/*": "./src/apis/*.ts",
+    "./assets/*": "./src/assets/*",
+    "./constants/*": "./src/constants/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./libs/*": "./src/libs/*.ts",
+    "./services/*": "./src/services/*.ts",
+    "./types/*": "./src/types/*.ts",
+    "./utils/*": "./src/utils/*.ts"
+  },
+  "peerDependencies": {
+    "ky": "1.14.3",
+    "radashi": "12.7.1",
+    "react": ">=19.0.0",
+    "type-fest": "5.4.4",
+    "zod": "4.3.6"
+  }
+}
+```
+
+**Example usage:**
+
+```typescript
+// Import API schemas
+import { errorResponseSchema } from '@workspace/core/apis/core'
+
+// Import types
+import type { ErrorResponseSchema } from '@workspace/core/types/api'
+
+// Import hooks
+import { useDebounce } from '@workspace/core/hooks/use-debounce'
+
+// Import utilities
+import { formatDate } from '@workspace/core/utils/date'
+```
+
+<Note>
+The core package uses peer dependencies to avoid duplication. Apps must install `ky`, `radashi`, `react`, `type-fest`, and `zod`.
+</Note>
+
+### @workspace/typescript-config
+
+Shared TypeScript configuration that ensures consistent type checking across all apps and packages.
+
+```json apps/spa/tsconfig.json
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+All apps reference this package to maintain consistent TypeScript settings.
+
+## Dependency management
+
+The monorepo follows strict dependency management practices:
+
+### Exact versions
+
+<Warning>
+All dependencies use **exact versions** (no `^` or `~` prefixes) to ensure reproducible builds.
+</Warning>
+
+```json
+{
+  "dependencies": {
+    "react": "19.2.4",          // ✅ Exact version
+    "zod": "^4.3.6"            // ❌ Avoid semver ranges
+  }
+}
+```
+
+### Workspace dependencies
+
+Internal packages use the `workspace:*` protocol:
+
+```json
+{
+  "dependencies": {
+    "@workspace/core": "workspace:*",
+    "@workspace/typescript-config": "workspace:*"
+  }
+}
+```
+
+This ensures apps always use the local version of packages.
+
+### Shared dependencies
+
+Common dependencies are installed at the workspace root when possible:
+
+```json Root dependencies
+{
+  "devDependencies": {
+    "@antfu/eslint-config": "7.4.3",
+    "eslint": "9.39.2",
+    "typescript": "5.9.3",
+    "@workspace/typescript-config": "workspace:*"
+  }
+}
+```
+
+App-specific dependencies are installed in each app's `package.json`.
+
+## Code organization
+
+Each app follows a consistent directory structure:
+
+<Tabs>
+  <Tab title="SPA Structure">
+    ```
+    apps/spa/
+    ├── public/              # Static assets
+    ├── src/
+    │   ├── auth/           # Authentication logic
+    │   ├── components/     # React components
+    │   ├── hooks/          # Custom hooks
+    │   ├── routes/         # TanStack Router routes
+    │   ├── styles/         # Global styles
+    │   └── main.tsx        # Entry point
+    ├── .env.dev            # Dev environment vars
+    ├── .env.prod           # Prod environment vars
+    ├── package.json
+    ├── tsconfig.json
+    └── vite.config.ts
+    ```
+  </Tab>
+  
+  <Tab title="Web Structure">
+    ```
+    apps/web/
+    ├── public/              # Static assets
+    ├── src/
+    │   ├── app/            # Next.js App Router
+    │   ├── auth/           # Better Auth config
+    │   ├── components/     # React components
+    │   ├── db/             # Drizzle schema
+    │   ├── hooks/          # Custom hooks
+    │   └── actions/        # Server actions
+    ├── .env.dev            # Dev environment vars
+    ├── .env.prod           # Prod environment vars
+    ├── drizzle.config.ts   # Drizzle ORM config
+    ├── package.json
+    ├── tsconfig.json
+    └── next.config.ts
+    ```
+  </Tab>
+  
+  <Tab title="Expo Structure">
+    ```
+    apps/expo/
+    ├── assets/              # Images, fonts
+    ├── src/
+    │   ├── app/            # Expo Router routes
+    │   ├── components/     # React Native components
+    │   ├── hooks/          # Custom hooks
+    │   └── providers/      # Context providers
+    ├── .maestro/           # E2E tests
+    ├── app.json            # Expo config
+    ├── eas.json            # EAS Build config
+    ├── package.json
+    └── tsconfig.json
+    ```
+  </Tab>
+</Tabs>
+
+## Build and deployment
+
+Each app has its own build and deployment strategy:
+
+### SPA deployment
+
+The SPA builds to static files that can be deployed to any static hosting:
+
+```bash
+# Build for production
+bun spa build:prod
+
+# Output: apps/spa/dist/
+```
+
+Deploy to Vercel, Netlify, Cloudflare Pages, or any CDN.
+
+### Web deployment
+
+The Next.js app can be deployed to Vercel or any Node.js hosting:
+
+```bash
+# Build for production
+bun web build:prod
+
+# Start production server
+bun web start
+```
+
+### Expo deployment
+
+Expo uses EAS Build for cloud builds and EAS Update for OTA updates:
+
+```bash
+# Build for Android
+bun expo build:android:prod
+
+# Build for iOS
+bun expo build:ios:prod
+
+# Send OTA update
+bun expo update:prod
+```
+
+## Development tools
+
+The monorepo includes shared tooling:
+
+### Linting
+
+ESLint with `@antfu/eslint-config` for consistent code style:
+
+```bash
+bun lint
+bun lint:fix
+```
+
+### Type checking
+
+TypeScript checking across all apps:
+
+```bash
+# Check all apps in parallel
+bun typecheck
+
+# Check specific app
+bun spa:typecheck
+```
+
+### Testing
+
+- **SPA & Web**: Playwright for E2E tests
+- **Expo**: Maestro for mobile E2E tests
+
+### Changesets
+
+For versioning and changelog generation:
+
+```bash
+# Create a changeset
+bun cs
+
+# Version packages
+bun cs:v
+```
+
+## Environment variables
+
+<Info>
+Local environment files are the source of truth. Update deployment/CI environments when you change local files.
+</Info>
+
+### SPA & Web
+
+Both apps use `.env.dev` and `.env.prod` files:
+
+```bash
+# Development
+cp .env.dev .env.local
+
+# Production
+cp .env.prod .env.local
+```
+
+For CI/CD, set GitHub environment secrets:
+- Environment: `dev` → Secret: `SPA_ENV_FILE` with `.env.dev` content
+- Environment: `prod` → Secret: `SPA_ENV_FILE` with `.env.prod` content
+
+### Expo
+
+Expo uses EAS environment variables:
+
+```bash
+# Pull from EAS
+bun expo env:pull:dev
+bun expo env:pull:preview
+bun expo env:pull:prod
+```
+
+## Observability
+
+The monorepo includes OpenTelemetry integration for production observability:
+
+### Local development
+
+Run the Grafana LGTM stack for local observability:
+
+```bash
+bun compose:up
+```
+
+This starts:
+- **Prometheus** for metrics
+- **Tempo** for traces
+- **Loki** for logs
+- **Pyroscope** for profiling
+- **Grafana** dashboard at [http://localhost:3111](http://localhost:3111)
+
+Login credentials:
+- Username: `admin`
+- Password: `admin`
+
+### Production
+
+Both SPA and Web apps include OpenTelemetry instrumentation:
+
+- **SPA**: Browser metrics and traces
+- **Web**: Server-side metrics, traces, and logs
+
+## Best practices
+
+<CardGroup cols={2}>
+  <Card title="Shared code" icon="code-merge">
+    Extract shared logic to `@workspace/core` when used by 2+ apps
+  </Card>
+  
+  <Card title="Type safety" icon="shield-check">
+    Use TypeScript strictly with `strict: true` and `exactOptionalPropertyTypes: true`
+  </Card>
+  
+  <Card title="Exact versions" icon="hashtag">
+    Always use exact dependency versions for reproducible builds
+  </Card>
+  
+  <Card title="Environment vars" icon="key">
+    Keep `.env` files in sync between local and deployment
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="SPA Guide" icon="react" href="/apps/spa">
+    Explore the React SPA architecture
+  </Card>
+  
+  <Card title="Web Guide" icon="n" href="/apps/web">
+    Learn about the Next.js app
+  </Card>
+  
+  <Card title="Expo Guide" icon="mobile" href="/apps/expo">
+    Build mobile apps with Expo
+  </Card>
+</CardGroup>

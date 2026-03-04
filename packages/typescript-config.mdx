@@ -1,0 +1,290 @@
+---
+title: TypeScript Config Package
+description: Shared TypeScript configuration presets for consistent type-checking across all apps and packages
+---
+
+## Overview
+
+The `@workspace/typescript-config` package provides shared TypeScript configuration presets that ensure consistent type-checking, compilation settings, and best practices across all apps and packages in the monorepo.
+
+## Installation
+
+The TypeScript config package is available as a workspace package:
+
+```json
+{
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*"
+  }
+}
+```
+
+## Available Configurations
+
+The package provides several configuration presets tailored for different project types:
+
+<CardGroup cols={2}>
+  <Card title="base.json" icon="cog">
+    Base configuration with strict TypeScript settings for all projects
+  </Card>
+  
+  <Card title="react.json" icon="react">
+    Configuration optimized for React applications and libraries
+  </Card>
+  
+  <Card title="nextjs.json" icon="n">
+    Configuration tailored for Next.js applications
+  </Card>
+  
+  <Card title="node.json" icon="node">
+    Configuration for Node.js backend services
+  </Card>
+  
+  <Card title="react-library.json" icon="book">
+    Configuration for React component libraries
+  </Card>
+</CardGroup>
+
+## Configuration Details
+
+### Base Configuration
+
+The `base.json` provides foundational TypeScript settings:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "esModuleInterop": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "moduleResolution": "NodeNext",
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022"
+  }
+}
+```
+
+<Accordion title="Key Features">
+  - **Strict Mode**: Enabled for maximum type safety
+  - **ES2022 Target**: Modern JavaScript features
+  - **No Unchecked Indexed Access**: Prevents undefined access errors
+  - **Isolated Modules**: Each file can be transpiled independently
+  - **JSON Module Resolution**: Import JSON files with type safety
+</Accordion>
+
+### React Configuration
+
+Extends the base config with React-specific settings:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "React",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "noEmit": true,
+    "jsx": "preserve"
+  }
+}
+```
+
+<Accordion title="Key Features">
+  - **JSX Support**: Preserves JSX for bundler processing
+  - **Bundler Module Resolution**: Optimized for modern bundlers
+  - **Web Worker Support**: Includes Web Worker type definitions
+  - **No Emit**: Type-checking only, let bundler handle compilation
+</Accordion>
+
+### Next.js Configuration
+
+Optimized for Next.js applications:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Next.js",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "plugins": [{ "name": "next" }],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "jsx": "preserve",
+    "noEmit": true
+  }
+}
+```
+
+<Accordion title="Key Features">
+  - **Next.js Plugin**: Enables Next.js TypeScript features
+  - **Bundler Resolution**: Works with Next.js bundler
+  - **JavaScript Support**: Allows incremental TypeScript adoption
+</Accordion>
+
+## Usage in Apps
+
+### React App
+
+For a React application (like `apps/react-vite`):
+
+```json title="tsconfig.json"
+{
+  "extends": "@workspace/typescript-config/react.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
+```
+
+### Next.js App
+
+For a Next.js application (like `apps/nextjs-app`):
+
+```json title="tsconfig.json"
+{
+  "extends": "@workspace/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+### Node.js Service
+
+For a Node.js backend service:
+
+```json title="tsconfig.json"
+{
+  "extends": "@workspace/typescript-config/node.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+### React Library
+
+For a React component library or shared package:
+
+```json title="tsconfig.json"
+{
+  "extends": "@workspace/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+## Extending Configurations
+
+You can layer multiple configurations for specific needs:
+
+```json title="tsconfig.json"
+{
+  "extends": "@workspace/typescript-config/react.json",
+  "compilerOptions": {
+    // Override or add project-specific settings
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Choose the Right Config">
+    Select the configuration that matches your project type (React, Next.js, Node.js, or library).
+  </Step>
+  
+  <Step title="Extend, Don't Copy">
+    Always use `extends` to inherit from the shared config instead of copying settings.
+  </Step>
+  
+  <Step title="Minimal Overrides">
+    Only override settings when absolutely necessary. The shared configs are optimized for most use cases.
+  </Step>
+  
+  <Step title="Path Mappings">
+    Add project-specific path mappings in your local `tsconfig.json`.
+  </Step>
+  
+  <Step title="Keep Updated">
+    When the shared config updates, all projects benefit automatically.
+  </Step>
+</Steps>
+
+## Configuration Philosophy
+
+The TypeScript configurations in this package follow these principles:
+
+<AccordionGroup>
+  <Accordion title="Strict Type Safety">
+    All configurations enable strict mode and additional safety checks like `noUncheckedIndexedAccess` to catch potential runtime errors at compile time.
+  </Accordion>
+  
+  <Accordion title="Modern JavaScript">
+    Targeting ES2022+ ensures access to modern language features while maintaining broad compatibility.
+  </Accordion>
+  
+  <Accordion title="Bundler Integration">
+    React and Next.js configs use bundler module resolution, optimized for modern build tools like Vite and Turbopack.
+  </Accordion>
+  
+  <Accordion title="Type-Only Compilation">
+    Web configurations use `noEmit: true` since bundlers handle the actual compilation, making TypeScript purely a type checker.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Module Resolution Errors">
+    If you encounter module resolution issues, ensure your `paths` configuration in the local `tsconfig.json` matches your actual project structure.
+  </Accordion>
+  
+  <Accordion title="JSX Errors in React Projects">
+    Make sure you're extending the `react.json` or `nextjs.json` config, which includes proper JSX settings.
+  </Accordion>
+  
+  <Accordion title="Strict Mode Errors">
+    The configs enable strict mode by default. If migrating an existing project, you may need to address type errors incrementally.
+  </Accordion>
+</AccordionGroup>

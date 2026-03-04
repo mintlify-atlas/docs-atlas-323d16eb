@@ -1,0 +1,296 @@
+---
+title: Welcome to FE Monorepo
+description: A modern, production-ready monorepo template for building React, Next.js, and Expo applications
+mode: custom
+---
+
+<div className="relative overflow-hidden dark:bg-[#0f1117] bg-white py-20">
+  <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold dark:text-gray-100 text-gray-900 mb-6">
+          Build modern web and mobile apps with FE Monorepo
+        </h1>
+        <p className="text-base sm:text-lg lg:text-xl dark:text-gray-400 text-gray-600 max-w-2xl mb-8">
+          A bulletproof monorepo template featuring React 19, Next.js 16, and Expo 53. Everything you need to build production-ready applications with shared packages, type safety, and best practices built-in.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#7c7c7c] text-white font-semibold hover:bg-[#6a6a6a] transition-colors"
+          >
+            Get Started
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a
+            href="/architecture"
+            className="inline-flex items-center px-6 py-3 rounded-lg border dark:border-white/30 border-gray-300 dark:bg-white/10 bg-gray-50 dark:text-gray-100 text-gray-900 font-semibold dark:hover:bg-white/20 hover:bg-gray-100 transition-colors"
+          >
+            View Architecture
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <div className="absolute inset-0 dark:bg-gradient-to-r dark:from-[#7c7c7c]/20 dark:to-transparent bg-gradient-to-r from-[#7c7c7c]/10 to-transparent blur-3xl"></div>
+          <img
+            src="https://media.brand.dev/3eaaac35-f511-4745-b70a-6ad2ed1e60d1.svg"
+            alt="FE Monorepo"
+            noZoom
+            className="relative w-full h-auto max-w-md mx-auto"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Quick start
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Get up and running with the monorepo in minutes
+  </p>
+
+  <Steps>
+    <Step title="Clone the repository">
+      Start by cloning the FE Monorepo template to your local machine:
+
+      ```bash
+      git clone https://github.com/rifandani/fe-monorepo.git
+      cd fe-monorepo
+      ```
+    </Step>
+
+    <Step title="Install dependencies">
+      The monorepo uses Bun as the package manager. Install all dependencies:
+
+      <CodeGroup>
+      ```bash Bun
+      bun install
+      ```
+
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+      </CodeGroup>
+
+      <Note>
+        This project requires Node.js >= 24.14.0 and uses Bun 1.3.10 as specified in `package.json`.
+      </Note>
+    </Step>
+
+    <Step title="Run a development server">
+      Choose which app you want to run:
+
+      <Tabs>
+        <Tab title="SPA (React)">
+          Start the React 19 SPA on port 3001:
+          ```bash
+          bun spa dev
+          ```
+        </Tab>
+        <Tab title="Web (Next.js)">
+          Start the Next.js 16 app on port 3002:
+          ```bash
+          bun web dev
+          ```
+        </Tab>
+        <Tab title="Expo (Mobile)">
+          Start the Expo 53 development server:
+          ```bash
+          bun expo dev
+          ```
+        </Tab>
+      </Tabs>
+    </Step>
+
+    <Step title="Start building">
+      Open your browser and start building your application. Each app comes pre-configured with:
+      
+      - TypeScript with strict type checking
+      - ESLint for code quality
+      - Playwright/Maestro for E2E testing
+      - OpenTelemetry for observability
+      - Hot module replacement for fast development
+
+      <Accordion title="View example project structure">
+        ```
+        fe-monorepo/
+        ├── apps/
+        │   ├── spa/          # React 19 + TanStack Router
+        │   ├── web/          # Next.js 16 + Better Auth
+        │   └── expo/         # Expo 53 + Tamagui
+        ├── packages/
+        │   ├── core/         # Shared business logic
+        │   └── typescript-config/
+        └── package.json
+        ```
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Explore by topic
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Jump into specific areas of the documentation
+  </p>
+
+  <CardGroup cols={3}>
+    <Card title="Apps" icon="window" href="/apps/spa">
+      Learn about the React SPA, Next.js web app, and Expo mobile app included in the monorepo
+    </Card>
+    <Card title="Packages" icon="box" href="/packages/core">
+      Discover the shared packages that power all three applications
+    </Card>
+    <Card title="Development" icon="code" href="/guides/development">
+      Set up your development environment and learn the workflow
+    </Card>
+    <Card title="Testing" icon="flask" href="/guides/testing">
+      Run E2E tests with Playwright and Maestro
+    </Card>
+    <Card title="Deployment" icon="rocket" href="/guides/deployment">
+      Deploy your applications to production
+    </Card>
+    <Card title="API Reference" icon="book-open" href="/api/core/overview">
+      Explore the core package APIs, hooks, and utilities
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Key features
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Everything you need for modern frontend development
+  </p>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">Bun Workspace Monorepo</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            Three production-ready applications sharing common packages with Bun's fast package manager
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">TypeScript-First</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            Strict type checking across all apps and packages with shared TypeScript configurations
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">Modern Stack</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            React 19, Next.js 16, Expo 53, TanStack Router, TanStack Query, and more cutting-edge tools
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">Comprehensive Testing</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            E2E testing with Playwright for web apps and Maestro for mobile, ensuring quality across platforms
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">Observability Built-In</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            OpenTelemetry integration for metrics, traces, and logs with Grafana dashboard support
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-xl p-6 dark:hover:border-[#7c7c7c] hover:border-[#7c7c7c] transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#7c7c7c]/10 dark:bg-[#7c7c7c]/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#7c7c7c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">Developer Experience</h3>
+          <p className="text-sm dark:text-gray-400 text-gray-600">
+            Hot module replacement, ESLint, Prettier, Husky git hooks, and changesets for version management
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-2xl p-8 sm:p-12 text-center">
+    <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+      Ready to get started?
+    </h2>
+    <p className="text-base dark:text-gray-400 text-gray-600 mb-8 max-w-2xl mx-auto">
+      Follow our quickstart guide to set up your development environment and create your first application in the monorepo.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#7c7c7c] text-white font-semibold hover:bg-[#6a6a6a] transition-colors"
+    >
+      Start Building
+      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
+  </div>
+</div>

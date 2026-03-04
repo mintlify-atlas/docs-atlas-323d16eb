@@ -1,0 +1,361 @@
+---
+title: React SPA
+description: React 19 single-page application with TanStack Router, running on port 3001
+---
+
+## Overview
+
+The SPA app is a modern single-page application built with React 19 and TanStack Router. It provides a fast, responsive user experience with client-side routing and state management.
+
+**Key Information:**
+- Port: `3001`
+- Framework: React 19
+- Router: TanStack Router v1.159.10
+- Build Tool: Vite 7.3.1
+- Styling: Tailwind CSS 4.1.18
+
+## Tech Stack
+
+### Core Dependencies
+
+- **React**: 19.2.4 - UI library with React Compiler support
+- **TanStack Router**: 1.159.10 - Type-safe file-based routing
+- **TanStack Query**: 5.90.21 - Data fetching and caching
+- **TanStack Form**: 1.28.2 - Type-safe form handling
+- **Vite**: 7.3.1 - Build tool and dev server
+
+### UI & Styling
+
+- **Tailwind CSS**: 4.1.18 - Utility-first CSS framework
+- **React Aria Components**: 1.15.1 - Accessible UI primitives
+- **Motion**: 12.34.0 - Animation library
+- **Radix UI**: Scroll area components
+- **Sonner**: 2.0.7 - Toast notifications
+- **Recharts**: 3.7.0 - Chart components
+
+### State Management & Forms
+
+- **Zustand**: 5.0.11 - Lightweight state management
+- **Zod**: 4.3.6 - Schema validation
+- **React Stately**: 3.44.0 - State management for UI components
+
+### Data Fetching
+
+- **ky**: 1.14.3 - HTTP client
+- **radashi**: 12.7.1 - Utility library
+
+### Observability
+
+- **OpenTelemetry**: Full instrumentation suite for browser tracing and metrics
+  - `@opentelemetry/api`: 1.9.0
+  - `@opentelemetry/sdk-trace-web`: 2.5.1
+  - `@opentelemetry/sdk-metrics`: 2.5.1
+  - `@opentelemetry/instrumentation-fetch`: 0.212.0
+
+### SEO & Meta
+
+- **@unhead/react**: 2.1.4 - Head management
+- **@unhead/schema-org**: 2.1.4 - Schema.org metadata
+- **web-vitals**: 5.1.0 - Core Web Vitals tracking
+
+### PWA
+
+- **vite-plugin-pwa**: 1.2.0 - Progressive Web App support
+- **workbox**: 7.4.0 - Service worker tooling
+
+### Developer Tools
+
+- **@tanstack/react-router-devtools**: 1.159.10
+- **@tanstack/react-query-devtools**: 5.91.3
+- **@tanstack/react-form-devtools**: 0.2.15
+- **React Compiler**: 1.0.0 - babel-plugin-react-compiler
+- **Playwright**: 1.58.2 - E2E testing
+
+## Development
+
+### Available Scripts
+
+<CodeGroup>
+
+```bash Development
+# Start development server with .env.dev
+bun dev
+
+# Start with production environment
+bun dev:prod
+```
+
+```bash Build
+# Development build
+bun build
+
+# Production build
+bun build:prod
+
+# Preview production build
+bun preview
+
+# Build and preview
+bun build-and-preview
+```
+
+```bash Testing
+# Install Playwright browsers
+bun test:install
+
+# Run E2E tests
+bun test
+
+# Run tests with UI mode
+bun test:ui
+
+# Show test report
+bun test:report
+
+# CI testing with sharding
+bun test:ci
+```
+
+```bash Code Quality
+# Type checking
+bun typecheck
+
+# Check site metadata
+bun check-site-meta
+```
+
+```bash Utilities
+# Generate sitemap
+bun sitemap:gen
+
+# Generate PWA assets
+bun pwa-assets:gen
+```
+
+</CodeGroup>
+
+## Project Structure
+
+```
+apps/spa/
+├── src/
+│   ├── auth/           # Authentication module
+│   ├── core/           # Core utilities and components
+│   ├── routes/         # Route components
+│   ├── main.tsx        # Application entry point
+│   ├── routeTree.gen.ts # Generated route tree
+│   ├── instrumentation.ts # OpenTelemetry setup
+│   ├── claims-sw.ts    # Service worker claims
+│   └── prompt-sw.ts    # Service worker prompt
+├── public/             # Static assets
+├── scripts/            # Build scripts
+├── docs/               # Documentation
+│   ├── observability.md
+│   └── seo.md
+├── playwright.config.ts
+├── vite.config.ts
+├── tsconfig.json
+├── pwa-assets.config.ts
+└── package.json
+```
+
+## Configuration Files
+
+### Vite Configuration
+
+**File:** `vite.config.ts`
+
+Configures:
+- React plugin with React Compiler
+- TanStack Router plugin
+- Tailwind CSS via Vite
+- PWA plugin with workbox
+- TanStack devtools
+- Bundle analyzer
+- HTTPS localhost
+
+### TypeScript
+
+**Files:**
+- `tsconfig.json` - Main TypeScript configuration
+- `tsconfig.node.json` - Node.js specific config
+
+### Playwright
+
+**File:** `playwright.config.ts`
+
+E2E testing configuration with Chromium.
+
+### PWA Assets
+
+**File:** `pwa-assets.config.ts`
+
+Generates PWA icons and splash screens.
+
+### Components
+
+**File:** `components.json`
+
+UI component configuration.
+
+## Environment Variables
+
+<Note>
+The app uses `@dotenvx/dotenvx` for environment variable management. Environment files are copied to `.env.local` during build/dev commands.
+</Note>
+
+**Environment Files:**
+- `.env.dev` - Development environment
+- `.env.prod` - Production environment
+- `.env.local` - Active environment (generated)
+
+## Testing
+
+### End-to-End Testing
+
+The app uses Playwright for E2E testing with Chromium.
+
+**Test Configuration:**
+- Uses `.env.dev` for test environment
+- Supports test sharding for CI
+- UI mode available for interactive debugging
+- Generates HTML reports
+
+```bash
+# Run tests
+bun test
+
+# Interactive UI mode
+bun test:ui
+
+# View test report
+bun test:report
+```
+
+## Observability
+
+<Info>
+OpenTelemetry browser instrumentation is configured but does not support logs in the browser.
+</Info>
+
+**Features:**
+- Automatic fetch instrumentation
+- Browser resource detection
+- Custom metrics and traces
+- OTLP HTTP exporters
+
+**Usage:**
+```tsx
+import { telemetry } from '@/core/utils/telemetry'
+
+// Use telemetry utilities for instrumentation
+```
+
+**Logging:**
+Use the logger from `@workspace/core` for console logging.
+
+## SEO
+
+### Runtime Metadata
+
+Use the `useSeo` hook to generate metadata at runtime:
+
+```tsx
+import { useSeo } from '@/core/hooks/use-seo'
+
+function Page() {
+  useSeo({
+    title: 'Page Title',
+    description: 'Page description',
+  })
+  
+  return <div>Content</div>
+}
+```
+
+### Sitemap Generation
+
+When adding new pages, update the sitemap:
+
+```bash
+bun sitemap:gen
+```
+
+The script is located at `scripts/gen-sitemap.ts`.
+
+## Progressive Web App
+
+The SPA includes full PWA support:
+
+- Service worker with workbox
+- Offline support
+- App manifest
+- Install prompts
+- Auto-generated icons and splash screens
+
+### Generate PWA Assets
+
+```bash
+bun pwa-assets:gen
+```
+
+## Deployment
+
+### Vercel
+
+The app includes a `vercel.json` configuration for deployment.
+
+**Build Commands:**
+```json
+{
+  "buildCommand": "bun build:prod",
+  "outputDirectory": "dist"
+}
+```
+
+### Build Output
+
+Production builds are output to the `dist/` directory.
+
+```bash
+# Production build
+bun build:prod
+
+# Preview locally
+bun preview
+```
+
+## Performance
+
+### Bundle Analysis
+
+The Vite config includes `rollup-plugin-visualizer` for bundle analysis.
+
+### Web Vitals
+
+Core Web Vitals are tracked using the `web-vitals` library (v5.1.0).
+
+### React Compiler
+
+The app uses the official React Compiler (babel-plugin-react-compiler v1.0.0) for automatic optimizations.
+
+## Workspace Integration
+
+The SPA uses shared packages from the monorepo:
+
+- `@workspace/core` - Shared utilities and components
+- `@workspace/typescript-config` - Shared TypeScript configuration
+
+## Best Practices
+
+<Warning>
+**Environment Management**: Always use the npm scripts (`bun dev`, `bun build:prod`) which automatically copy the correct environment file to `.env.local`.
+</Warning>
+
+<Tip>
+**Development**: Use the TanStack devtools (Router, Query, Form) for debugging during development. They are automatically included in development builds.
+</Tip>
+
+<Note>
+**Type Safety**: The app uses generated route trees (`routeTree.gen.ts`) for type-safe routing. This file is automatically generated by the TanStack Router plugin.
+</Note>

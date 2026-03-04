@@ -1,0 +1,389 @@
+---
+title: Upgrading Dependencies
+description: Learn how to safely upgrade dependencies in the FE Monorepo using automated tools and best practices.
+---
+
+## Overview
+
+The FE Monorepo follows a strict dependency management strategy:
+
+- **Always use EXACT versions** (no `^` or `~` ranges)
+- Use `bun bump:deps` for automated dependency updates
+- Special process for Expo SDK upgrades
+- Verify changes with testing and building
+
+<Warning>
+  Always use exact versions for dependencies to ensure reproducible builds across environments.
+</Warning>
+
+## Upgrading Non-Expo Dependencies
+
+For all packages except Expo-related ones, use the automated upgrade command.
+
+### Step-by-Step Process
+
+<Steps>
+  <Step title="Check for Outdated Dependencies">
+    Run the bump command to check and update dependencies:
+    
+    ```bash
+    bun bump:deps
+    ```
+    
+    This command:
+    - Checks for outdated dependencies across all workspace packages
+    - Updates to the latest versions
+    - Excludes Expo-related packages (handled separately)
+    - Updates peer dependencies
+  </Step>
+  
+  <Step title="Install Updated Dependencies">
+    Install the updated dependencies:
+    
+    ```bash
+    bun install
+    ```
+  </Step>
+  
+  <Step title="Handle Playwright Upgrades">
+    If Playwright had a MINOR version upgrade, install the new browser:
+    
+    <CodeGroup>
+    ```bash SPA
+    bun spa test:install
+    ```
+    
+    ```bash Web
+    bun web test:install
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Run Tests">
+    Run E2E tests to ensure everything works:
+    
+    ```bash
+    bun spa test
+    bun web test
+    bun expo test:dev  # Start dev server and emulator first
+    ```
+  </Step>
+  
+  <Step title="Build All Apps">
+    Build all apps with development environment:
+    
+    ```bash
+    bun spa build
+    bun web build
+    bun expo build:android:dev:local
+    ```
+  </Step>
+  
+  <Step title="Lint and Type Check">
+    Verify linting and type checking:
+    
+    ```bash
+    bun lint-typecheck
+    ```
+  </Step>
+</Steps>
+
+### Excluded Packages
+
+The `bump:deps` command excludes Expo-related packages:
+
+- `expo*`
+- `@expo*`
+- `@dev-plugins*`
+- `@babel*`
+- `metro*`
+- `react-native*`
+- `@react-navigation*`
+- `tamagui`
+- `@tamagui*`
+
+<Info>
+  These packages require coordinated upgrades with the Expo SDK version.
+</Info>
+
+## Upgrading Expo Dependencies
+
+Expo apps require a special upgrade process to ensure compatibility.
+
+<Warning>
+  Always check the Expo SDK changelog for breaking changes before upgrading.
+</Warning>
+
+### Step-by-Step Process
+
+<Steps>
+  <Step title="Check Expo SDK Changelog">
+    Review the changelog for the target Expo SDK version:
+    
+    - Check the "Deprecations, renamings, and removals" section
+    - Note any breaking changes that might affect your app
+    - Plan necessary code changes
+  </Step>
+  
+  <Step title="Upgrade Expo SDK">
+    Run the Expo upgrade command:
+    
+    ```bash
+    cd apps/expo
+    npx expo install expo@^53.0.0 --fix
+    ```
+    
+    Replace `53.0.0` with your target SDK version.
+    
+    <Info>
+      The `--fix` flag automatically updates all Expo-related packages to compatible versions.
+    </Info>
+  </Step>
+  
+  <Step title="Run Expo Doctor">
+    Check for known issues and compatibility problems:
+    
+    ```bash
+    bun expo doctor
+    ```
+    
+    Fix any issues reported by the doctor.
+  </Step>
+  
+  <Step title="Update EAS CLI Version">
+    Update the `cli.version` in `eas.json` to match the latest EAS CLI:
+    
+    ```json eas.json
+    {
+      "cli": {
+        "version": ">= 13.0.0"
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Upgrade Development Tools">
+    If required by the new SDK:
+    
+    - Update Xcode (for iOS)
+    - Update Android Studio (for Android)
+    - Update Java version if needed
+  </Step>
+  
+  <Step title="Regenerate Native Projects">
+    Clean and regenerate the native projects:
+    
+    ```bash
+    bun expo prebuild
+    ```
+  </Step>
+  
+  <Step title="Create Development Build">
+    Build the app locally to test:
+    
+    <CodeGroup>
+    ```bash Android
+    bun expo build:android:dev:local
+    ```
+    
+    ```bash iOS Simulator
+    bun expo build:ios:dev-sim:local
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Test the App">
+    Install and test the app:
+    
+    ```bash
+    bun expo dev
+    bun expo test:dev  # After installing the build
+    ```
+  </Step>
+</Steps>
+
+### Detailed Expo Upgrade Guide
+
+For more details, see the [Expo app README](../apps/expo#how-to-upgrade).
+
+## Upgrading IntentUI Components
+
+The monorepo uses IntentUI components which require special handling:
+
+<Steps>
+  <Step title="Run Interactive Update">
+    ```bash
+    bunx @intentui/cli@latest add -o
+    ```
+    
+    The `-o` flag overwrites existing components.
+  </Step>
+  
+  <Step title="Manual Adjustments">
+    After the update:
+    
+    1. Copy prop changes into `providers/toast/context.tsx`
+    2. Remove the generated `toast.tsx` file if needed
+    3. Use `react-stately` instead of `@react-stately/color`
+    4. Use `react-aria` instead of `@react-aria/i18n`
+  </Step>
+  
+  <Step title="Alternative: Use Shorthand Command">
+    ```bash
+    bun bump:ui
+    ```
+    
+    This runs the same command with the correct configuration.
+  </Step>
+</Steps>
+
+## Version Management with Changesets
+
+After upgrading dependencies and verifying everything works:
+
+<Steps>
+  <Step title="Create Changeset">
+    Document the changes:
+    
+    ```bash
+    bun cs
+    ```
+    
+    Follow the prompts to:
+    - Select affected packages
+    - Choose version bump type (major, minor, patch)
+    - Describe the changes
+  </Step>
+  
+  <Step title="Version the Changeset">
+    Update package versions:
+    
+    ```bash
+    bun cs:v
+    ```
+  </Step>
+</Steps>
+
+## Verification Checklist
+
+After upgrading dependencies, ensure you complete all verification steps:
+
+<Steps>
+  <Step title="Run All Tests">
+    ```bash
+    bun spa test
+    bun web test
+    bun expo test:dev
+    ```
+  </Step>
+  
+  <Step title="Build All Apps">
+    <CodeGroup>
+    ```bash Development
+    bun spa build
+    bun web build
+    bun expo build:android:dev:local
+    ```
+    
+    ```bash Production (Optional)
+    bun spa build:prod
+    bun web build:prod
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Lint and Type Check">
+    ```bash
+    bun lint-typecheck
+    ```
+  </Step>
+  
+  <Step title="Test in Browser/Emulator">
+    Manually test critical user flows in:
+    - SPA (`bun spa dev`)
+    - Web (`bun web dev`)
+    - Expo (on device/simulator)
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Dependency Conflicts
+
+**Peer dependency warnings:**
+1. Check if the warning is critical
+2. Try updating peer dependencies: `bun bump:deps` includes `--peer`
+3. Manual resolution may be needed for some packages
+
+**Version incompatibilities:**
+1. Check package changelogs for breaking changes
+2. Look for migration guides
+3. Consider pinning to a compatible version temporarily
+
+### Build Failures After Upgrade
+
+**Type errors:**
+1. Check for breaking type changes in updated packages
+2. Update type imports if packages changed structure
+3. Run `bun lint-typecheck` to see all errors
+
+**Runtime errors:**
+1. Check browser console / app logs
+2. Review breaking changes in package changelogs
+3. Test with development builds first
+
+### Expo-Specific Issues
+
+**Native build fails:**
+1. Ensure Xcode/Android Studio are up to date
+2. Run `bun expo doctor` for diagnostics
+3. Clean and rebuild: `bun expo prebuild`
+
+**Version mismatches:**
+1. Run `bun expo install:check` to check compatibility
+2. Run `bun expo install:fix` to fix version mismatches
+
+## Best Practices
+
+<Note>
+  **Upgrade Strategy:**
+  - Upgrade dependencies regularly (weekly or bi-weekly)
+  - Test thoroughly after each upgrade
+  - Use exact versions to prevent surprises
+  - Read changelogs before upgrading major versions
+  - Upgrade one major package at a time for easier debugging
+</Note>
+
+### Safety First
+
+1. **Branch Protection**: Always upgrade on a feature branch
+2. **Test Coverage**: Run full test suite before merging
+3. **Incremental Changes**: Upgrade one package at a time for major versions
+4. **Documentation**: Use changesets to document what changed and why
+
+### Monitoring
+
+- Check for security vulnerabilities: `bun audit`
+- Review dependabot/renovate PRs regularly
+- Monitor package deprecation notices
+
+## Quick Reference
+
+| Task | Command |
+|------|--------|
+| Update all non-Expo deps | `bun bump:deps` |
+| Update Expo SDK | `npx expo install expo@^XX.0.0 --fix` |
+| Update IntentUI | `bun bump:ui` |
+| Install dependencies | `bun install` |
+| Check Expo compatibility | `bun expo doctor` |
+| Fix Expo versions | `bun expo install:fix` |
+| Create changeset | `bun cs` |
+| Version changeset | `bun cs:v` |
+| Run all tests | `bun spa test && bun web test` |
+| Lint and type check | `bun lint-typecheck` |
+
+## Related Resources
+
+- [Expo Upgrade Guide](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/)
+- [npm-check-updates Documentation](https://github.com/raineorshine/npm-check-updates)
+- [Changesets Documentation](https://github.com/changesets/changesets)

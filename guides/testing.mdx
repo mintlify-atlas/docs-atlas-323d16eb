@@ -1,0 +1,338 @@
+---
+title: Testing Guide
+description: Learn how to run end-to-end tests using Playwright for SPA/Web and Maestro for Expo applications.
+---
+
+## Overview
+
+The FE Monorepo uses different testing frameworks for each application type:
+
+- **SPA & Web**: Playwright for browser-based E2E testing
+- **Expo**: Maestro for mobile E2E testing
+
+## SPA Testing (Playwright)
+
+The SPA uses Playwright 1.58.2 for end-to-end testing.
+
+### Setup
+
+<Steps>
+  <Step title="Install Playwright Browsers">
+    Install Chromium browser for testing:
+    
+    ```bash
+    bun spa test:install
+    ```
+  </Step>
+  
+  <Step title="Ensure Environment File Exists">
+    Make sure `apps/spa/.env.dev` exists with the required environment variables.
+  </Step>
+</Steps>
+
+### Running Tests
+
+<CodeGroup>
+```bash Run All Tests
+bun spa test
+```
+
+```bash Interactive UI Mode
+bun spa test:ui
+```
+
+```bash View Test Report
+bun spa test:report
+```
+
+```bash CI Mode (Sharded)
+SHARD_INDEX=1 SHARD_TOTAL=4 bun spa test:ci
+```
+</CodeGroup>
+
+<Info>
+  The `test` script automatically loads environment variables from `.env.dev` using `dotenvx`.
+</Info>
+
+### Test Configuration
+
+Playwright tests for SPA use the following configuration:
+
+- **Browser**: Chromium only (for CI efficiency)
+- **Sharding**: 4 shards in CI for parallel execution
+- **Reports**: HTML reports stored in `apps/spa/playwright-report`
+- **Environment**: Development mode with `.env.dev`
+
+### CI Integration
+
+The CI workflow runs SPA tests in parallel across 4 shards:
+
+```yaml .github/workflows/ci.yml
+strategy:
+  fail-fast: false
+  matrix:
+    shardIndex: [1, 2, 3, 4]
+    shardTotal: [4]
+```
+
+<Note>
+  Tests can be skipped by including `e2e skip` or `skip e2e` in the commit message.
+</Note>
+
+## Web Testing (Playwright)
+
+The Web app also uses Playwright 1.58.2 for end-to-end testing.
+
+### Setup
+
+<Steps>
+  <Step title="Install Playwright Browsers">
+    Install Chromium browser for testing:
+    
+    ```bash
+    bun web test:install
+    ```
+  </Step>
+  
+  <Step title="Ensure Environment File Exists">
+    Make sure `apps/web/.env.dev` exists with database and auth configuration.
+  </Step>
+  
+  <Step title="Start Database">
+    Ensure PostgreSQL is running for tests that require database access.
+  </Step>
+</Steps>
+
+### Running Tests
+
+<CodeGroup>
+```bash Run All Tests
+bun web test
+```
+
+```bash Interactive UI Mode
+bun web test:ui
+```
+
+```bash View Test Report
+bun web test:report
+```
+
+```bash CI Mode (Sharded)
+SHARD_INDEX=1 SHARD_TOTAL=4 bun web test:ci
+```
+</CodeGroup>
+
+<Warning>
+  The Web E2E tests are currently commented out in CI due to the need to mock the Better Auth API on the server-side.
+</Warning>
+
+### Test Configuration
+
+Playwright tests for Web use similar configuration to SPA:
+
+- **Browser**: Chromium only
+- **Sharding**: 4 shards for parallel execution
+- **Reports**: HTML reports stored in `apps/web/playwright-report`
+- **Environment**: Development mode with `.env.dev`
+
+## Expo Testing (Maestro)
+
+The Expo app uses Maestro for mobile end-to-end testing.
+
+### Prerequisites
+
+<Steps>
+  <Step title="Install Maestro CLI">
+    Follow the [Maestro installation guide](https://docs.maestro.dev/getting-started/installing-maestro) to install the CLI.
+  </Step>
+  
+  <Step title="Build Development App">
+    Create a development build and install it on your device/simulator:
+    
+    <CodeGroup>
+    ```bash Android
+    bun expo build:android:dev:local
+    ```
+    
+    ```bash iOS Simulator
+    bun expo build:ios:dev-sim:local
+    bun expo ios:sim:install
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Start App">
+    Launch the app on your device/simulator:
+    
+    ```bash
+    bun expo dev
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  As of May 2025, Maestro does not support physical iOS devices. Use iOS Simulator for testing.
+</Warning>
+
+### Running Tests
+
+<CodeGroup>
+```bash Development Build
+bun expo test:dev
+```
+
+```bash Production Build
+bun expo test:prod
+```
+
+```bash Maestro Studio (Interactive)
+bun expo test:ui
+```
+</CodeGroup>
+
+<Info>
+  Maestro Studio opens an interactive UI at `http://localhost:9999/interact` to help write and debug test flows.
+</Info>
+
+### Test Flow Configuration
+
+Maestro tests use environment variables to target the correct app variant:
+
+```bash
+maestro test \
+  -e MAESTRO_APP_ID=com.rifandani.expoapp.development \
+  -e IS_DEV=true \
+  .maestro/flows
+```
+
+<Warning>
+  Don't run `bun expo test:ui` (Maestro Studio) and `bun expo test:dev` simultaneously. This will cause the error: "Unable to launch app".
+</Warning>
+
+### Maestro Studio
+
+Maestro Studio is a visual tool for writing and debugging test flows:
+
+<Steps>
+  <Step title="Start Maestro Studio">
+    ```bash
+    bun expo test:ui
+    ```
+  </Step>
+  
+  <Step title="Open in Browser">
+    Navigate to `http://localhost:9999/interact`
+  </Step>
+  
+  <Step title="Write Test Flows">
+    Use the visual interface to:
+    - Interact with the app
+    - Record interactions
+    - Debug test flows
+    - Generate YAML flow definitions
+  </Step>
+</Steps>
+
+## Upgrading Test Dependencies
+
+### Playwright
+
+When upgrading Playwright to a new MINOR version:
+
+<Steps>
+  <Step title="Update Package Version">
+    Update `@playwright/test` in the respective `package.json`
+  </Step>
+  
+  <Step title="Install Browsers">
+    Install the new version of Chromium:
+    
+    ```bash
+    bun web test:install  # or bun spa test:install
+    ```
+  </Step>
+  
+  <Step title="Run Tests">
+    Verify tests still pass:
+    
+    ```bash
+    bun web test  # or bun spa test
+    ```
+  </Step>
+</Steps>
+
+### Maestro
+
+Maestro CLI is installed globally and managed separately:
+
+```bash
+# Update Maestro CLI
+maestro update
+```
+
+## CI/CD Considerations
+
+### GitHub Actions
+
+The monorepo uses GitHub Actions for running Playwright tests:
+
+- **Parallel Execution**: Tests run in 4 parallel shards
+- **Artifact Upload**: Test reports are saved for 7 days
+- **Environment**: Uses `dev` environment secrets
+- **Skip Option**: Add `e2e skip` to commit message to skip tests
+
+### Maestro in CI
+
+<Warning>
+  Maestro tests cannot run on regular CI platforms like GitHub Actions because they require a physical device or simulator. Consider using Maestro Cloud for CI testing.
+</Warning>
+
+## Performance Tips
+
+<Note>
+  **Playwright:**
+  - Use `--shard` option to parallelize tests in CI
+  - Run tests in headless mode by default
+  - Only install Chromium (not all browsers) for faster setup
+  
+  **Maestro:**
+  - Keep test flows focused and concise
+  - Use Maestro Studio for faster debugging
+  - Test on development builds first before production
+</Note>
+
+## Troubleshooting
+
+### Playwright Issues
+
+**Tests fail to start:**
+1. Ensure browsers are installed: `bun spa test:install`
+2. Check that `.env.dev` file exists
+3. Verify the development server isn't already running
+
+**Flaky tests:**
+1. Add proper wait conditions
+2. Use `test.ui` mode to debug
+3. Check network conditions and API responses
+
+### Maestro Issues
+
+**Unable to launch app:**
+1. Ensure only one Maestro process is running
+2. Verify the app is installed on the device/simulator
+3. Check the `MAESTRO_APP_ID` environment variable matches your build
+
+**iOS Simulator not detected:**
+1. Ensure a simulator is booted: `xcrun simctl list devices | grep Booted`
+2. Boot a simulator from Xcode before running tests
+
+## Quick Reference
+
+| Task | SPA | Web | Expo |
+|------|-----|-----|------|
+| Install test tools | `bun spa test:install` | `bun web test:install` | Install Maestro CLI |
+| Run tests | `bun spa test` | `bun web test` | `bun expo test:dev` |
+| Interactive mode | `bun spa test:ui` | `bun web test:ui` | `bun expo test:ui` |
+| View report | `bun spa test:report` | `bun web test:report` | N/A |
+| Framework | Playwright 1.58.2 | Playwright 1.58.2 | Maestro |

@@ -1,0 +1,549 @@
+---
+title: Expo Mobile App
+description: Expo 53 mobile application with file-based routing and cross-platform support
+---
+
+## Overview
+
+The Expo app is a cross-platform mobile application built with Expo 53 and React Native 0.79. It supports iOS and Android with a modern development workflow using EAS (Expo Application Services) for building, updating, and deploying.
+
+**Key Information:**
+- Framework: Expo 53.0.11
+- React Native: 0.79.3
+- React: 19.2.4
+- Router: Expo Router 5.1.0
+- UI Library: Tamagui 1.126.16
+
+## Tech Stack
+
+### Core Dependencies
+
+- **Expo**: 53.0.11 - Mobile app framework
+- **React Native**: 0.79.3 - Cross-platform mobile framework
+- **React**: 19.2.4 - UI library
+- **Expo Router**: 5.1.0 - File-based routing
+- **Expo Dev Client**: 5.2.0 - Custom development builds
+
+### UI & Styling
+
+- **Tamagui**: 1.126.16 - Universal UI kit for React Native and Web
+- **@tamagui/animations-moti**: 1.126.16 - Animation support
+- **@tamagui/toast**: 1.126.16 - Toast notifications
+- **Expo Image**: 2.3.0 - Optimized image component
+- **@expo/vector-icons**: 14.1.0 - Icon library
+- **@expo-google-fonts/space-grotesk**: 0.3.0 - Custom fonts
+
+### Navigation
+
+- **@react-navigation/native**: 7.1.14 - Navigation library
+- **react-native-screens**: 4.11.1 - Native screen primitives
+- **react-native-safe-area-context**: 5.4.0 - Safe area handling
+- **react-native-gesture-handler**: 2.24.0 - Gesture support
+
+### Forms & Validation
+
+- **react-hook-form**: 7.71.1 - Form state management
+- **@hookform/resolvers**: 5.2.2 - Form validation resolvers
+- **Zod**: 4.3.6 - Schema validation
+
+### State Management & Data
+
+- **Zustand**: 5.0.11 - State management
+- **TanStack Query**: 5.90.21 - Data fetching and caching
+- **react-native-mmkv**: 3.2.0 - Fast key-value storage
+
+### Internationalization
+
+- **i18next**: 25.8.7 - i18n framework
+- **react-i18next**: 16.5.4 - React bindings for i18next
+- **expo-localization**: 16.1.5 - Device locale detection
+- **intl-pluralrules**: 2.0.1 - Polyfill for Intl.PluralRules
+
+### Data Fetching
+
+- **ky**: 1.14.3 - HTTP client
+- **radashi**: 12.7.1 - Utility library
+
+### Utilities
+
+- **date-fns**: 4.1.0 - Date manipulation
+- **ts-pattern**: 5.9.0 - Pattern matching
+- **react-native-keyboard-controller**: 1.17.4 - Keyboard handling
+- **react-native-reanimated**: 3.17.5 - Advanced animations
+- **burnt**: 0.13.0 - Native toast notifications
+
+### Expo Modules
+
+- **expo-application**: 6.1.4 - App metadata
+- **expo-constants**: 17.1.6 - App constants
+- **expo-font**: 13.3.1 - Font loading
+- **expo-linking**: 7.1.5 - Deep linking
+- **expo-splash-screen**: 0.30.9 - Splash screen
+- **expo-status-bar**: 2.2.3 - Status bar
+- **expo-system-ui**: 5.0.8 - System UI
+- **expo-updates**: 0.28.14 - OTA updates
+
+### Developer Tools
+
+- **@dev-plugins/react-native-mmkv**: 0.3.1
+- **@dev-plugins/react-navigation**: 0.3.1
+- **@dev-plugins/react-query**: 0.3.1
+- **expo-atlas**: 0.4.0 - Bundle analysis
+- **react-native-logs**: 5.3.0 - Logging
+
+## Prerequisites
+
+<Warning>
+**System Requirements:**
+- Java 17+ (required for Expo SDK 50+)
+- EAS CLI installed globally: `npm i -g eas-cli`
+- Do NOT use VPN (fetch will not work)
+</Warning>
+
+### EAS Setup
+
+```bash
+# Setup EAS CLI autocomplete
+eas autocomplete zsh  # Follow the instructions
+
+# Login to EAS account
+eas login
+
+# Initialize EAS project (creates projectId and slug)
+eas init
+```
+
+### Environment Variables
+
+<Info>
+**Source of Truth**: The EAS project environment is the source of truth. Always pull from EAS to update local environment files.
+</Info>
+
+**Setup:**
+1. Set environment variables in EAS dashboard:
+   - `APP_VARIANT`: `development`, `preview`, or `production`
+   - `EXPO_PUBLIC_APP_VARIANT`: Your API URL (e.g., `https://dummyjson.com`)
+
+2. Pull to local environment:
+```bash
+bun env:pull:dev      # Development
+bun env:pull:preview  # Preview
+bun env:pull:prod     # Production
+```
+
+**Files:**
+- `.env.local.example` - Example environment variables (not used)
+- Environment managed through EAS
+
+## Development
+
+### Available Scripts
+
+<CodeGroup>
+
+```bash Development
+# Start development server
+bun dev
+
+# Run on Android
+bun android
+
+# Run on iOS simulator
+bun ios
+```
+
+```bash Environment Management
+# Pull environment from EAS
+bun env:pull:dev
+bun env:pull:preview
+bun env:pull:prod
+```
+
+```bash Native Project
+# Regenerate native project (CNG)
+bun prebuild
+
+# List iOS simulators
+bun ios:sim:list
+
+# Shutdown iOS simulator
+bun ios:sim:shutdown
+
+# Install iOS simulator build
+bun ios:sim:install
+```
+
+```bash Utilities
+# Type checking
+bun typecheck
+
+# Check Expo installation
+bun install:check
+
+# Fix Expo installation
+bun install:fix
+
+# Run Expo doctor
+bun doctor
+```
+
+</CodeGroup>
+
+### Development Workflow
+
+<Note>
+Every time you change `app.json` or install native libraries, you must regenerate the native project.
+</Note>
+
+**First-time setup:**
+```bash
+cd apps/expo
+
+# For Android
+bun prebuild && bun build:android:dev:local
+
+# For iOS simulator
+bun prebuild && bun build:ios:dev-sim:local
+```
+
+**Start the app:**
+```bash
+bun start:dev
+```
+
+**Or run everything at once:**
+```bash
+# Uninstall old version first
+adb uninstall com.rifandani.expoapp.development
+xcrun simctl uninstall booted com.rifandani.expoapp.development
+
+# Prebuild + build + install
+bun android  # Android
+bun ios      # iOS simulator
+```
+
+### Icon Changes
+
+When changing the app icon, clean rebuild:
+
+```bash
+bun prebuild
+```
+
+## Building
+
+### Development Build
+
+Development builds require a development server to be running.
+
+<Tabs>
+  <Tab title="EAS Cloud Build">
+    ```bash
+    # Android
+    bun build:android:dev
+    
+    # iOS device (requires Apple Developer Account)
+    bun build:ios:dev
+    ```
+  </Tab>
+  <Tab title="Local Build">
+    ```bash
+    # Android (.apk)
+    bun build:android:dev:local
+    
+    # iOS device (.tar.gz - requires Apple Developer Account)
+    bun build:ios:dev:local
+    
+    # iOS simulator (.tar.gz)
+    bun build:ios:dev-sim:local
+    ```
+  </Tab>
+</Tabs>
+
+**Installing iOS Simulator Build:**
+
+```bash
+# Extract and install the .tar.gz to simulator
+bun ios:sim:install
+```
+
+### Preview Build
+
+Internal distribution for Google Play Beta and TestFlight.
+
+<Tabs>
+  <Tab title="EAS Cloud Build">
+    ```bash
+    # Android
+    bun build:android:preview
+    
+    # iOS (requires Apple Developer Account)
+    bun build:ios:preview
+    ```
+  </Tab>
+  <Tab title="Local Build">
+    ```bash
+    # Android (.apk)
+    bun build:android:preview:local
+    
+    # iOS (.app - requires Apple Developer Account)
+    bun build:ios:preview:local
+    ```
+  </Tab>
+</Tabs>
+
+### Production Build
+
+<Warning>
+Production builds can ONLY be installed through app stores, not directly on devices.
+</Warning>
+
+- **Android**: Produces `.aab` file for Google Play Store
+- **iOS**: Produces build for App Store Connect
+
+<Tabs>
+  <Tab title="EAS Cloud Build">
+    ```bash
+    # Android
+    bun build:android:prod
+    
+    # iOS (requires Apple Developer Account)
+    bun build:ios:prod
+    ```
+  </Tab>
+  <Tab title="Local Build">
+    ```bash
+    # Android (.aab - cannot install directly)
+    bun build:android:prod:local
+    
+    # iOS (.ipa - cannot install directly)
+    bun build:ios:prod:local
+    ```
+  </Tab>
+</Tabs>
+
+### Bundle Analysis
+
+```bash
+# Analyze JavaScript bundle size
+bun analyze
+
+# Opens Expo Atlas in browser
+# Press 'shift+m' in terminal to open
+```
+
+## OTA Updates
+
+EAS Update provides over-the-air updates for non-native code (JS, styling, images).
+
+```bash
+# Send update to preview
+bun update:preview
+
+# Send update to production
+bun update:prod
+```
+
+## Submission
+
+<Info>
+**Requirements:**
+- Google Play Developer Account (Android)
+- Apple Developer Account (iOS)
+- Production build profile
+- Google Service Account key (Android)
+</Info>
+
+```bash
+# Submit to Google Play Store
+bun submit:android
+
+# Submit to Apple App Store
+bun submit:ios
+```
+
+## Testing
+
+### End-to-End Testing
+
+The app uses Maestro for E2E testing.
+
+<Note>
+As of May 18, 2025, Maestro does not support physical iOS devices.
+</Note>
+
+**Installation:**
+Follow [Maestro installation steps](https://docs.maestro.dev/getting-started/installing-maestro).
+
+**Run Tests:**
+```bash
+# Development variant
+bun test:dev
+
+# Production variant
+bun test:prod
+```
+
+**Maestro Studio:**
+```bash
+# Open Maestro Studio at http://localhost:9999/interact
+bun test:ui
+
+# Do NOT run this simultaneously with bun test:dev
+```
+
+## Project Structure
+
+```
+apps/expo/
+├── src/
+│   ├── app/            # Expo Router file-based routes
+│   ├── auth/           # Authentication module
+│   ├── core/           # Core utilities and components
+│   ├── home/           # Home module
+│   ├── user/           # User module
+│   └── app.d.ts        # Type definitions
+├── .maestro/           # Maestro test flows
+│   └── flows/
+├── .eas/               # EAS workflows
+│   └── workflows/
+├── android/            # Native Android project (generated)
+├── ios/                # Native iOS project (generated)
+├── eas.json            # EAS configuration
+├── app.json            # Expo configuration
+├── metro.config.js     # Metro bundler config
+├── babel.config.js     # Babel configuration
+├── tsconfig.json       # TypeScript config
+└── package.json
+```
+
+## Configuration Files
+
+### EAS Configuration
+
+**File:** `eas.json`
+
+Defines build profiles:
+- `development` - Development builds for devices
+- `development-simulator` - Development builds for simulators
+- `preview` - Internal distribution
+- `production` - App store builds
+
+### Expo Configuration
+
+**File:** `app.json`
+
+App metadata, plugins, and configuration.
+
+### Metro Configuration
+
+**File:** `metro.config.js`
+
+Bundler configuration for React Native.
+
+### Babel Configuration
+
+**File:** `babel.config.js`
+
+Configured for:
+- Expo preset
+- React Native Reanimated
+- Tamagui
+
+## Upgrade Guide
+
+When upgrading to a new Expo SDK version:
+
+```bash
+# Upgrade to Expo SDK 53
+npx expo install expo@^53.0.0 --fix
+
+# Check for issues
+bun expo doctor
+
+# Update eas.json cli.version to match global eas-cli version
+
+# Upgrade Xcode/Android Studio if needed
+
+# Regenerate native project
+bun prebuild
+
+# Create new development build
+bun build:android:dev:local  # Android
+bun build:ios:dev-sim:local  # iOS simulator
+```
+
+<Tip>
+Always check the Expo SDK changelog for breaking changes before upgrading.
+</Tip>
+
+## EAS Workflows
+
+Automate builds with GitHub integration.
+
+**Manual Run:**
+```bash
+eas workflow:run .eas/workflows/create-development-builds.yaml --non-interactive
+```
+
+## Workspace Integration
+
+The Expo app uses shared packages from the monorepo:
+
+- `@workspace/core` - Shared utilities and components
+
+## Known Issues
+
+<Warning>
+**Current Issues:**
+- `tsconfig expo/tsconfig.base` not found
+- Cannot open preview build on Android device & simulator
+- iOS simulator color parsing error with dynamic colors
+</Warning>
+
+**Resolved Issues:**
+- Invalid hook call in i18n provider (fixed by not preserving code in metro.config.js)
+- CheckAuthWrapper TypeError (fixed by using Tamagui Spinner instead of BaseSpinner)
+- React resolution error (fixed by removing node_modules in apps/expo)
+
+## Planned Improvements
+
+<Note>
+**Todo List:**
+- Use `@workspace/core` i18n library instead of i18next
+- Use `expo-secure-store` for sensitive data (Android Keystore/iOS Keychain)
+- Integrate Rozenite devtools
+- Implement EAS Insights
+- Setup EAS Submit automation
+- Configure EAS Metadata
+- Explore Expo Launch
+- Add OpenTelemetry with Embrace SDK
+- Upgrade to Expo v54
+- Create AGENTS.md documentation
+</Note>
+
+## Best Practices
+
+<Tip>
+**Native Changes**: Regenerate native project after any changes to app.json or installing native libraries.
+</Tip>
+
+<Tip>
+**Environment Variables**: Always pull from EAS project environment. Do not manually edit local environment files.
+</Tip>
+
+<Warning>
+**VPN**: Disable VPN during development as it interferes with fetch requests.
+</Warning>
+
+<Note>
+**Build Variants**: Each environment (development, preview, production) requires different keystores as they count as separate app IDs.
+</Note>
+
+## Resources
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native Documentation](https://reactnative.dev/)
+- [EAS Documentation](https://docs.expo.dev/eas/)
+- [Maestro Documentation](https://docs.maestro.dev/)
+- [Tamagui Documentation](https://tamagui.dev/)

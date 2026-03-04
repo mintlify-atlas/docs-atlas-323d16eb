@@ -1,0 +1,605 @@
+---
+title: Utility Functions
+description: Helper functions for data manipulation, validation, formatting, and common operations
+---
+
+# Utility Functions
+
+The core package provides a comprehensive set of utility functions organized by domain.
+
+## Core Utilities
+
+**Location**: `@workspace/core/utils/core`
+
+### clamp
+
+Clamp a numeric value within a specified range.
+
+```typescript
+import { clamp } from '@workspace/core/utils/core'
+
+const value = clamp({ value: 150, min: 0, max: 100 })
+// 100
+
+const value2 = clamp({ value: -5, min: 0, max: 10 })
+// 0
+
+const value3 = clamp({ value: 5, min: 0, max: 10 })
+// 5
+```
+
+<ParamField path="value" type="number" required>
+  Value to clamp
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum allowed value
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum allowed value
+</ParamField>
+
+**Returns**: `number` - Clamped value
+
+### toCamelCase
+
+Convert deep nested object keys to camelCase.
+
+```typescript
+import { toCamelCase } from '@workspace/core/utils/core'
+
+const result = toCamelCase({
+  user_name: 'John',
+  user_age: 30,
+  user_profile: {
+    profile_image: 'url',
+    created_at: '2024-01-01',
+  },
+})
+// {
+//   userName: 'John',
+//   userAge: 30,
+//   userProfile: {
+//     profileImage: 'url',
+//     createdAt: '2024-01-01'
+//   }
+// }
+```
+
+<ParamField path="object" type="unknown" required>
+  Object or array to transform
+</ParamField>
+
+**Returns**: `T` - Transformed object with camelCase keys
+
+### toSnakeCase
+
+Convert deep nested object keys to snake_case.
+
+```typescript
+import { toSnakeCase } from '@workspace/core/utils/core'
+
+const result = toSnakeCase({
+  userName: 'John',
+  userAge: 30,
+  userProfile: {
+    profileImage: 'url',
+    createdAt: '2024-01-01',
+  },
+})
+// {
+//   user_name: 'John',
+//   user_age: 30,
+//   user_profile: {
+//     profile_image: 'url',
+//     created_at: '2024-01-01'
+//   }
+// }
+```
+
+<ParamField path="object" type="unknown" required>
+  Object or array to transform
+</ParamField>
+
+**Returns**: `T` - Transformed object with snake_case keys
+
+### objectToFormData
+
+Convert a deep object to FormData with support for Files and arrays.
+
+```typescript
+import { objectToFormData } from '@workspace/core/utils/core'
+
+const formData = objectToFormData({
+  name: 'John Doe',
+  age: 30,
+  file: new File(['content'], 'file.txt'),
+  profile: {
+    bio: 'Developer',
+    location: 'USA',
+  },
+  tags: ['javascript', 'react'],
+})
+
+// FormData entries:
+// name: 'John Doe'
+// age: '30'
+// file: File
+// profile.bio: 'Developer'
+// profile.location: 'USA'
+// tags[0]: 'javascript'
+// tags[1]: 'react'
+```
+
+<ParamField path="obj" type="UnknownRecord" required>
+  Object to convert to FormData
+</ParamField>
+
+<ParamField path="options.rootName" type="string">
+  Root name prefix for all keys
+</ParamField>
+
+<ParamField path="options.ignoreList" type="Array<keyof T>">
+  Keys to ignore during conversion
+</ParamField>
+
+**Returns**: `FormData` - FormData instance with nested keys
+
+### objectToFormDataArrayWithComma
+
+Similar to `objectToFormData` but joins array values with commas.
+
+```typescript
+import { objectToFormDataArrayWithComma } from '@workspace/core/utils/core'
+
+const formData = objectToFormDataArrayWithComma({
+  name: 'John',
+  tags: ['javascript', 'react', 'typescript'],
+})
+
+// FormData entries:
+// name: 'John'
+// tags: 'javascript,react,typescript'
+```
+
+### deepReadObject
+
+Safely access deep values in an object via string path.
+
+```typescript
+import { deepReadObject } from '@workspace/core/utils/core'
+
+const obj = {
+  user: {
+    profile: {
+      name: 'John',
+      age: 30,
+    },
+  },
+}
+
+const name = deepReadObject(obj, 'user.profile.name')
+// 'John'
+
+const notFound = deepReadObject(obj, 'user.profile.email', 'N/A')
+// 'N/A'
+```
+
+<ParamField path="obj" type="Record<string, unknown>" required>
+  Object to search
+</ParamField>
+
+<ParamField path="path" type="string" required>
+  Dot-separated path to the value
+</ParamField>
+
+<ParamField path="defaultValue" type="unknown">
+  Default value if path doesn't exist
+</ParamField>
+
+**Returns**: `T` - Value at path or default value
+
+### toBase64
+
+Convert a File object to base64 encoded string.
+
+```typescript
+import { toBase64 } from '@workspace/core/utils/core'
+
+const file = new File(['hello'], 'hello.txt', { type: 'text/plain' })
+const base64 = await toBase64(file)
+// 'data:text/plain;base64,aGVsbG8='
+```
+
+<ParamField path="file" type="File" required>
+  File object to convert
+</ParamField>
+
+**Returns**: `Promise<string | ArrayBuffer | null>` - Base64 encoded string
+
+### indonesianPhoneNumberFormat
+
+Format Indonesian phone numbers.
+
+```typescript
+import { indonesianPhoneNumberFormat } from '@workspace/core/utils/core'
+
+const formatted = indonesianPhoneNumberFormat('+628127363636')
+// '+62-812-7363-6636'
+```
+
+<ParamField path="phoneNumber" type="string" required>
+  Phone number starting with +62
+</ParamField>
+
+**Returns**: `string` - Formatted phone number
+
+### removeLeadingZeros
+
+Remove leading zeros from a string.
+
+```typescript
+import { removeLeadingZeros } from '@workspace/core/utils/core'
+
+removeLeadingZeros('00123')  // '123'
+removeLeadingZeros('0000')   // '0'
+```
+
+### removeLeadingWhitespace
+
+Remove leading whitespace from a string.
+
+```typescript
+import { removeLeadingWhitespace } from '@workspace/core/utils/core'
+
+removeLeadingWhitespace('  hello')  // 'hello'
+removeLeadingWhitespace('   ')     // ''
+```
+
+---
+
+## DOM Utilities
+
+**Location**: `@workspace/core/utils/dom`
+
+### isBrowser
+
+Check if code is running in a browser environment.
+
+```typescript
+import { isBrowser } from '@workspace/core/utils/dom'
+
+if (isBrowser()) {
+  // Safe to access window, document, etc.
+  console.log(window.location.href)
+}
+```
+
+**Returns**: `boolean` - True if running in browser
+
+### doDownload
+
+Trigger file download from a URL.
+
+```typescript
+import { doDownload } from '@workspace/core/utils/dom'
+
+doDownload('https://example.com/file.pdf')
+```
+
+<ParamField path="url" type="string" required>
+  URL of file to download
+</ParamField>
+
+### createSearchParams
+
+Create URLSearchParams with array support.
+
+```typescript
+import { createSearchParams } from '@workspace/core/utils/dom'
+
+const params = createSearchParams({
+  sort: ['name', 'date'],
+  filter: 'active',
+})
+// URLSearchParams: sort=name&sort=date&filter=active
+```
+
+<ParamField path="init" type="URLSearchParamsInit" required>
+  Object, string, array, or URLSearchParams
+</ParamField>
+
+**Returns**: `URLSearchParams`
+
+### createSearchParamsWithComma
+
+Create URLSearchParams joining arrays with commas.
+
+```typescript
+import { createSearchParamsWithComma } from '@workspace/core/utils/dom'
+
+const params = createSearchParamsWithComma({
+  sort: 'asc',
+  filters: ['model', 'category', 'brand'],
+})
+// URLSearchParams: sort=asc&filters=model,category,brand
+```
+
+**Returns**: `URLSearchParams`
+
+### getPlatform
+
+Get the current platform name.
+
+```typescript
+import { getPlatform } from '@workspace/core/utils/dom'
+
+const platform = getPlatform()
+// 'MacIntel', 'Win32', 'Linux', etc.
+```
+
+**Returns**: `string` - Platform name
+
+### getPlatformAsync
+
+Get platform with high entropy values (more accurate).
+
+```typescript
+import { getPlatformAsync } from '@workspace/core/utils/dom'
+
+const platform = await getPlatformAsync()
+```
+
+**Returns**: `Promise<string>` - Platform name
+
+### isMacOS
+
+Check if running on macOS.
+
+```typescript
+import { isMacOS } from '@workspace/core/utils/dom'
+
+if (isMacOS()) {
+  console.log('Running on macOS')
+}
+```
+
+**Returns**: `boolean` - True if platform is macOS
+
+### getShortcutKey
+
+Get platform-specific shortcut key label.
+
+```typescript
+import { getShortcutKey } from '@workspace/core/utils/dom'
+
+getShortcutKey('mod')   // '⌘' on macOS, 'Ctrl' on others
+getShortcutKey('alt')   // '⌥' on macOS, 'Alt' on others
+getShortcutKey('shift') // '⇧' on macOS, 'Shift' on others
+```
+
+<ParamField path="key" type="string" required>
+  Key name ('mod', 'alt', 'shift', or any other key)
+</ParamField>
+
+**Returns**: `string` - Platform-specific key label
+
+### getShortcutKeys
+
+Generate shortcut key combination string.
+
+```typescript
+import { getShortcutKeys } from '@workspace/core/utils/dom'
+
+getShortcutKeys(['mod', 'shift', 'K'])
+// '⌘+Shift+K' on macOS
+// 'Ctrl+Shift+K' on others
+```
+
+<ParamField path="keys" type="string[]" required>
+  Array of key names
+</ParamField>
+
+**Returns**: `string` - Formatted shortcut combination
+
+### saveFile
+
+Save a Blob as a file to user's device.
+
+```typescript
+import { saveFile } from '@workspace/core/utils/dom'
+
+const blob = new Blob(['Hello, World!'], { type: 'text/plain' })
+saveFile(blob, 'hello.txt')
+```
+
+<ParamField path="data" type="Blob | MediaSource" required>
+  Data to save
+</ParamField>
+
+<ParamField path="fileName" type="string" required>
+  Name of the file to save
+</ParamField>
+
+---
+
+## Date Utilities
+
+**Location**: `@workspace/core/utils/date`
+
+### isValidTimezoneIANAString
+
+Check if a timezone string is valid IANA format.
+
+```typescript
+import { isValidTimezoneIANAString } from '@workspace/core/utils/date'
+
+isValidTimezoneIANAString('America/New_York')  // true
+isValidTimezoneIANAString('Asia/Jakarta')       // true
+isValidTimezoneIANAString('Invalid/Timezone')   // false
+```
+
+<ParamField path="timeZoneString" type="string" required>
+  IANA timezone string to validate
+</ParamField>
+
+**Returns**: `boolean` - True if timezone is valid
+
+### getLocalTimeZone
+
+Get the local timezone identifier.
+
+```typescript
+import { getLocalTimeZone } from '@workspace/core/utils/date'
+
+const timezone = getLocalTimeZone()
+// 'Asia/Jakarta', 'America/New_York', etc.
+```
+
+**Returns**: `string` - IANA timezone identifier
+
+---
+
+## Cookie Utilities
+
+**Location**: `@workspace/core/utils/cookie`
+
+### parseSetCookieHeader
+
+Parse Set-Cookie header string into structured data.
+
+```typescript
+import { parseSetCookieHeader } from '@workspace/core/utils/cookie'
+
+const setCookie = 'sessionId=abc123; Max-Age=3600; Path=/; Secure; HttpOnly'
+const cookies = parseSetCookieHeader(setCookie)
+
+const sessionCookie = cookies.get('sessionId')
+// {
+//   value: 'abc123',
+//   'max-age': 3600,
+//   path: '/',
+//   secure: true,
+//   httponly: true
+// }
+```
+
+<ParamField path="setCookie" type="string" required>
+  Set-Cookie header string
+</ParamField>
+
+**Returns**: `Map<string, CookieAttributes>` - Parsed cookie data
+
+**CookieAttributes**:
+- `value`: `string` - Cookie value
+- `max-age`: `number` - Max age in seconds
+- `expires`: `Date` - Expiration date
+- `domain`: `string` - Cookie domain
+- `path`: `string` - Cookie path
+- `secure`: `boolean` - Secure flag
+- `httponly`: `boolean` - HttpOnly flag
+- `samesite`: `'strict' | 'lax' | 'none'` - SameSite policy
+
+---
+
+## Invariant Utility
+
+**Location**: `@workspace/core/utils/invariant`
+
+### invariant
+
+Assert that a condition is truthy (TypeScript assertion function).
+
+```typescript
+import { invariant } from '@workspace/core/utils/invariant'
+
+function getUser(id: string | null) {
+  invariant(id, 'User ID is required')
+  // TypeScript knows id is string here, not null
+  return fetchUser(id)
+}
+
+const value: number | null = getValue()
+invariant(value !== null, 'Value must not be null')
+// TypeScript knows value is number here
+```
+
+<ParamField path="condition" type="any" required>
+  Condition to assert as truthy
+</ParamField>
+
+<ParamField path="message" type="string | (() => string)">
+  Error message or function returning error message (omitted in production)
+</ParamField>
+
+**Throws**: `Error` - If condition is falsy
+
+**Features**:
+- TypeScript assertion function (narrows types)
+- Message stripped in production builds
+- Supports lazy message evaluation
+
+---
+
+## Logger Utility
+
+**Location**: `@workspace/core/utils/logger`
+
+### logger
+
+Structured logger with colored output and timestamps.
+
+```typescript
+import { logger } from '@workspace/core/utils/logger'
+
+// Different log levels
+logger.debug('Debug message', { context: 'additional data' })
+logger.log('Info message', { userId: 123 })
+logger.warn('Warning message', { deprecated: true })
+logger.error('Error occurred', { error: err })
+```
+
+**Methods**:
+
+#### logger.debug
+
+Log debug-level messages (green).
+
+```typescript
+logger.debug('Fetching user data', { userId: 123 })
+// [14:23:45.123] DEBUG: Fetching user data { userId: 123 }
+```
+
+#### logger.log
+
+Log info-level messages (blue).
+
+```typescript
+logger.log('User logged in', { username: 'john' })
+// [14:23:45.123] INFO: User logged in { username: 'john' }
+```
+
+#### logger.warn
+
+Log warning-level messages (yellow).
+
+```typescript
+logger.warn('API rate limit approaching', { remaining: 10 })
+// [14:23:45.123] WARN: API rate limit approaching { remaining: 10 }
+```
+
+#### logger.error
+
+Log error-level messages (red).
+
+```typescript
+logger.error('Failed to save data', { error: err.message })
+// [14:23:45.123] ERROR: Failed to save data { error: '...' }
+```
+
+**All methods accept**:
+- `message`: `string` - Log message
+- `...attributes`: `any[]` - Additional data to log
+
+**Output format**: `[HH:MM:SS.mmm] LEVEL: message ...attributes`

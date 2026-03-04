@@ -1,0 +1,255 @@
+---
+title: Environment Variables
+description: Learn how to set up and manage environment variables for SPA, Web, and Expo applications in the FE Monorepo.
+---
+
+## Overview
+
+Each application in the monorepo manages environment variables differently based on its deployment strategy:
+
+- **SPA & Web**: Local `.env` files are the source of truth
+- **Expo**: EAS project environment is the source of truth
+
+## SPA Environment Variables
+
+The SPA uses `.env.dev` and `.env.prod` files for development and production environments.
+
+### Local Setup
+
+<Steps>
+  <Step title="Create Environment Files">
+    Create `.env.dev` and `.env.prod` files in `apps/spa/`:
+    
+    ```bash apps/spa/.env.dev
+    # Add your development environment variables
+    VITE_API_URL=https://dummyjson.com
+    ```
+    
+    ```bash apps/spa/.env.prod
+    # Add your production environment variables
+    VITE_API_URL=https://api.production.com
+    ```
+  </Step>
+  
+  <Step title="Run Development Server">
+    The dev script automatically copies the appropriate env file:
+    
+    ```bash
+    bun spa dev  # Uses .env.dev
+    bun spa dev:prod  # Uses .env.prod
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  Environment variables in Vite must be prefixed with `VITE_` to be exposed to the client-side code.
+</Info>
+
+### GitHub Secrets Setup
+
+<Steps>
+  <Step title="Create GitHub Environments">
+    Create two environments in your GitHub repository:
+    
+    - Navigate to: `Settings` → `Environments` → `New environment`
+    - Create `dev` environment
+    - Create `prod` environment
+  </Step>
+  
+  <Step title="Add Environment Secrets">
+    In each environment, add the secret `SPA_ENV_FILE`:
+    
+    - For `dev` environment: paste the contents of `apps/spa/.env.dev`
+    - For `prod` environment: paste the contents of `apps/spa/.env.prod`
+  </Step>
+</Steps>
+
+<Note>
+  The CI workflow (`.github/workflows/ci.yml`) references these secrets as `secrets.SPA_ENV_FILE` and writes them to the appropriate file during the build process.
+</Note>
+
+## Web Environment Variables
+
+The Web app uses the same pattern as SPA but with Next.js environment variable conventions.
+
+### Local Setup
+
+<Steps>
+  <Step title="Create Environment Files">
+    Create `.env.dev` and `.env.prod` files in `apps/web/`:
+    
+    ```bash apps/web/.env.dev
+    # Database
+    DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
+    
+    # Better Auth
+    BETTER_AUTH_SECRET="your-secret-key"
+    BETTER_AUTH_URL="http://localhost:3002"
+    
+    # API
+    NEXT_PUBLIC_API_URL="https://dummyjson.com"
+    ```
+  </Step>
+  
+  <Step title="Run Development Server">
+    The dev script automatically copies the appropriate env file:
+    
+    ```bash
+    bun web dev  # Uses .env.dev
+    bun web dev:prod  # Uses .env.prod
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  - Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser
+  - Server-side variables (like `DATABASE_URL`) are only available in server components and API routes
+</Info>
+
+### GitHub Secrets Setup
+
+<Steps>
+  <Step title="Add Environment Secrets">
+    In each GitHub environment (`dev` and `prod`), add the secret `WEB_ENV_FILE`:
+    
+    - For `dev` environment: paste the contents of `apps/web/.env.dev`
+    - For `prod` environment: paste the contents of `apps/web/.env.prod`
+  </Step>
+</Steps>
+
+## Expo Environment Variables
+
+<Warning>
+  For Expo, the EAS project environment is the source of truth. Changes should be made in the EAS dashboard, then pulled locally.
+</Warning>
+
+### Setup EAS Environment
+
+<Steps>
+  <Step title="Login to EAS">
+    Login to your EAS account:
+    
+    ```bash
+    eas login
+    ```
+  </Step>
+  
+  <Step title="Initialize EAS Project">
+    If not already done, initialize the EAS project:
+    
+    ```bash
+    eas init
+    ```
+  </Step>
+  
+  <Step title="Set Environment Variables in EAS Dashboard">
+    Go to your EAS project dashboard and add environment variables:
+    
+    **Required Variables:**
+    - `APP_VARIANT`: Set to `development`, `preview`, or `production`
+    - `EXPO_PUBLIC_APP_VARIANT`: Set to your API URL (e.g., `https://dummyjson.com`)
+    
+    Create separate sets for each environment (development, preview, production).
+  </Step>
+  
+  <Step title="Pull Environment Variables Locally">
+    Pull the environment variables from EAS to your local machine:
+    
+    <CodeGroup>
+    ```bash Development
+    bun expo env:pull:dev
+    ```
+    
+    ```bash Preview
+    bun expo env:pull:preview
+    ```
+    
+    ```bash Production
+    bun expo env:pull:prod
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+<Info>
+  Variables prefixed with `EXPO_PUBLIC_` are exposed to the client-side code. Others are only available during build time.
+</Info>
+
+### Local Environment File
+
+The `.env.local.example` file in `apps/expo/` shows available environment variables but is not used directly. It's only for reference.
+
+## Vercel Deployment (SPA & Web)
+
+When deploying to Vercel, environment variables must be configured in the Vercel dashboard.
+
+<Steps>
+  <Step title="Navigate to Project Settings">
+    Go to your Vercel project → Settings → Environment Variables
+  </Step>
+  
+  <Step title="Add Variables">
+    Add each environment variable from your `.env.prod` file:
+    
+    - Set the environment scope (Production, Preview, Development)
+    - Use the same variable names and values
+  </Step>
+  
+  <Step title="Redeploy">
+    Trigger a new deployment to apply the environment variables
+  </Step>
+</Steps>
+
+## Best Practices
+
+<Note>
+  **Source of Truth:**
+  - SPA & Web: Local `.env` files are the source of truth. When changing them, update deployment/CI project environments too.
+  - Expo: EAS project environment is the source of truth. Pull changes to local files using `eas env:pull`.
+</Note>
+
+### Security
+
+<Warning>
+  - Never commit `.env.dev`, `.env.prod`, or `.env.local` files to version control
+  - Always add them to `.gitignore`
+  - Never expose sensitive keys in client-side variables (`VITE_*`, `NEXT_PUBLIC_*`, `EXPO_PUBLIC_*`)
+</Warning>
+
+### Organization
+
+- Group related variables together with comments
+- Use descriptive variable names
+- Document required variables in README files
+- Keep `.env.example` files up to date
+
+### CI/CD Integration
+
+The CI workflow automatically handles environment files:
+
+```yaml .github/workflows/ci.yml
+- name: Save github secrets as env file
+  run: echo "${{ secrets.SPA_ENV_FILE }}" > apps/spa/.env.dev
+```
+
+## Troubleshooting
+
+### Variables Not Loading
+
+1. **SPA/Web**: Ensure the dev script is copying the env file correctly
+2. **Expo**: Pull the latest environment variables from EAS
+3. Restart the development server after changing environment variables
+
+### Build Failures
+
+1. Check that all required variables are set in the deployment environment
+2. Verify variable names match exactly (case-sensitive)
+3. Ensure GitHub secrets are set in the correct environment (`dev` vs `prod`)
+
+## Quick Reference
+
+| App | Source of Truth | Dev Command | Pull Remote Env |
+|-----|----------------|-------------|----------------|
+| SPA | Local `.env` files | `bun spa dev` | Update GitHub secrets |
+| Web | Local `.env` files | `bun web dev` | Update GitHub secrets |
+| Expo | EAS project env | `bun expo dev` | `bun expo env:pull:dev` |

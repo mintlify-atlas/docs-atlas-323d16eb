@@ -1,0 +1,194 @@
+---
+title: Core Package Overview
+description: Shared core module for React Monorepo with isomorphic utilities, hooks, and API clients
+---
+
+# Core Package Overview
+
+The `@workspace/core` package provides shared core functionality across all apps and packages in the FE Monorepo. It is designed to be **isomorphic**, meaning it can be used in both browser and server environments.
+
+## Installation
+
+The core package is available as a workspace dependency:
+
+```json
+{
+  "dependencies": {
+    "@workspace/core": "workspace:*"
+  }
+}
+```
+
+## Package Information
+
+- **Version**: 1.1.0
+- **Type**: ES Module
+- **License**: MIT
+
+## Peer Dependencies
+
+The core package requires the following peer dependencies:
+
+- **ky**: ^1.14.3 - Modern HTTP client
+- **radashi**: ^12.7.1 - Utility library
+- **react**: >=19.0.0 - React library
+- **type-fest**: ^5.4.4 - TypeScript type utilities
+- **zod**: ^4.3.6 - Schema validation
+
+## Package Structure
+
+The core package is organized into several modules, each accessible through path exports:
+
+### APIs
+```typescript
+import { authRepositories } from '@workspace/core/apis/auth'
+import { cdnRepositories } from '@workspace/core/apis/cdn'
+```
+
+API clients for authentication, CDN access, and core services.
+
+[Learn more about API clients →](/api/core/apis)
+
+### Hooks
+```typescript
+import { useLocalStorageState } from '@workspace/core/hooks/use-local-storage-state'
+import { useMediaQuery } from '@workspace/core/hooks/use-media-query'
+```
+
+Custom React hooks for state management, side effects, and browser APIs.
+
+[Learn more about hooks →](/api/core/hooks)
+
+### Utils
+```typescript
+import { clamp, toCamelCase } from '@workspace/core/utils/core'
+import { logger } from '@workspace/core/utils/logger'
+```
+
+Utility functions for common operations like formatting, validation, and logging.
+
+[Learn more about utilities →](/api/core/utils)
+
+### Constants
+```typescript
+import { API_ENDPOINTS } from '@workspace/core/constants/api'
+```
+
+Shared constants used across the monorepo.
+
+### Types
+```typescript
+import type { ApiResponse } from '@workspace/core/types/api'
+```
+
+Shared TypeScript type definitions.
+
+### Services
+```typescript
+import { Http } from '@workspace/core/services/http'
+```
+
+Core service implementations for HTTP, storage, and more.
+
+## Exports Configuration
+
+The package uses path-based exports for better tree-shaking and explicit imports:
+
+```json
+{
+  "exports": {
+    "./apis/*": "./src/apis/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./types/*": "./src/types/*.ts",
+    "./constants/*": "./src/constants/*.ts",
+    "./services/*": "./src/services/*.ts",
+    "./libs/*": "./src/libs/*.ts",
+    "./assets/*": "./src/assets/*"
+  }
+}
+```
+
+## Basic Usage
+
+### Using API Clients
+
+```typescript
+import { Http } from '@workspace/core/services/http'
+import { authRepositories } from '@workspace/core/apis/better-auth'
+
+// Create HTTP client
+const http = new Http({ baseUrl: process.env.API_BASE_URL })
+
+// Initialize auth repositories
+const auth = authRepositories(http)
+
+// Sign in with email
+const result = await auth.signInEmail({
+  json: {
+    email: 'user@example.com',
+    password: 'password123',
+  },
+})
+```
+
+### Using Hooks
+
+```typescript
+import { useLocalStorageState } from '@workspace/core/hooks/use-local-storage-state'
+import { useMediaQuery } from '@workspace/core/hooks/use-media-query'
+
+function MyComponent() {
+  // Persist state in localStorage
+  const [user, setUser] = useLocalStorageState('user', {
+    defaultValue: null,
+  })
+
+  // Responsive design with media queries
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
+  return (
+    <div>
+      {isMobile ? 'Mobile View' : 'Desktop View'}
+    </div>
+  )
+}
+```
+
+### Using Utilities
+
+```typescript
+import { clamp, toCamelCase, objectToFormData } from '@workspace/core/utils/core'
+import { logger } from '@workspace/core/utils/logger'
+
+// Clamp a value
+const value = clamp({ value: 150, min: 0, max: 100 }) // 100
+
+// Convert object keys to camelCase
+const data = toCamelCase({ user_name: 'John', user_age: 30 })
+// { userName: 'John', userAge: 30 }
+
+// Convert object to FormData
+const formData = objectToFormData({
+  name: 'John',
+  file: new File(['content'], 'file.txt'),
+})
+
+// Logging
+logger.info('User logged in', { userId: 123 })
+logger.error('Failed to fetch data', error)
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="API Clients" icon="plug" href="/api/core/apis">
+    Explore authentication, CDN, and core API clients
+  </Card>
+  <Card title="Hooks" icon="hook" href="/api/core/hooks">
+    Discover custom React hooks for common use cases
+  </Card>
+  <Card title="Utilities" icon="wrench" href="/api/core/utils">
+    Learn about utility functions for data manipulation
+  </Card>
+</CardGroup>
