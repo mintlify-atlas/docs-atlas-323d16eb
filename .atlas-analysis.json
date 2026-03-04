@@ -1,0 +1,101 @@
+{
+  "projectType": "frontend",
+  "projectName": "FE Monorepo",
+  "projectDescription": "Modern monorepo template for React, Next.js, and Expo applications with shared packages",
+  "theme": "mint",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#060606",
+  "darkColor": "#bdbdbd",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "architecture"
+            ]
+          },
+          {
+            "group": "Apps",
+            "pages": [
+              "apps/spa",
+              "apps/web",
+              "apps/expo"
+            ]
+          },
+          {
+            "group": "Packages",
+            "pages": [
+              "packages/core",
+              "packages/typescript-config"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/development",
+              "guides/environment-variables",
+              "guides/testing",
+              "guides/deployment",
+              "guides/upgrading-dependencies"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/observability",
+              "advanced/seo",
+              "advanced/performance",
+              "advanced/accessibility"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Package",
+            "pages": [
+              "api/core/overview",
+              "api/core/apis",
+              "api/core/hooks",
+              "api/core/utils"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Bun workspace monorepo with three production-ready applications",
+    "React 19 SPA with TanStack Router and Query",
+    "Next.js 16 full-stack app with Server Components and Better Auth",
+    "Expo 53 React Native mobile app with Tamagui",
+    "Shared core package with hooks, utilities, and business logic",
+    "OpenTelemetry observability integration",
+    "Comprehensive E2E testing with Playwright and Maestro",
+    "TypeScript-first with strict type checking"
+  ],
+  "publicApiSurface": [
+    "@workspace/spa - React 19 Single Page Application",
+    "@workspace/web - Next.js 16 Full-Stack Application",
+    "@workspace/expo - Expo 53 React Native Mobile App",
+    "@workspace/core - Shared isomorphic package",
+    "@workspace/typescript-config - Shared TypeScript configurations",
+    "useColorMode - Color mode management hook",
+    "useLocalStorageState - Local storage state hook",
+    "useSessionStorageState - Session storage state hook",
+    "useCopyToClipboard - Copy to clipboard hook",
+    "useMediaQuery - Media query hook",
+    "useDynamicList - Dynamic list management hook",
+    "useHistoryTravel - History travel hook for undo/redo",
+    "date utilities - Date formatting and manipulation",
+    "logger - Logging utilities",
+    "invariant - Runtime assertions"
+  ]
+}
